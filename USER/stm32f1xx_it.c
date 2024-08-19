@@ -23,6 +23,8 @@
 #include "main.h"
 #include "stm32f1xx_it.h"
 #include "LQ_TIM.h"
+
+extern TIM_HandleTypeDef TIM1_Handler;
 /** @addtogroup STM32F1xx_HAL_Examples
   * @{
   */
@@ -161,6 +163,12 @@ void SysTick_Handler(void)
 /**
   * @}
   */ 
+extern TIM_HandleTypeDef 	TIM1_Handler;
+//PWM TIM1 更新中断，服务函数
+void TIM1_UP_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&TIM1_Handler);
+}
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
 @函数名称：void TIM4_IRQHandler(void)
 @功能说明：定时器中断服务函数
@@ -214,6 +222,11 @@ void TIM2_IRQHandler(void)
 	TIM2->SR&=~(1<<0);//清除中断标志位 	    
 }
 
+void TIM1_IRQHandler(void)
+{ 	
+    HAL_TIM_IRQHandler(&TIM1_Handler);   
+  
+}
 /**
   * @}
   */

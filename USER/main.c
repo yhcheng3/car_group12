@@ -15,9 +15,13 @@ QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 #include "include.h"
 
 int main(void)
-{	
-    uint8_t sensor_Value[4];
-	char txt[20];
+{
+  int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
+	char txt_pulse[30];
+	
+	    int16_t duty = 1000,flag = 0;
+    char txt[16];
+	
 //-----------------------系统初始化配置----------------------------
 	HAL_Init();			  // 初始化HAL库
 	SystemClock_Config(); // 设置时钟9倍频,72M
@@ -25,22 +29,47 @@ int main(void)
 	JTAG_Set(SWD_ENABLE); // 打开SWD接口 可以利用主板的SWD接口调试
 //-----------------------------------------------------------------
 	LED_Init();			// LED初始化
-	OLED_Init();		// OLED初始化   
-	OLED_Show_LQLogo(); // 显示LOGO
-	sensor_init();
+	OLED_Init();		// OLED初始化    
+	Encoder_Init_TIM2();   //编码器占用定时器2,3,4，硬件AB解码读取
+	Encoder_Init_TIM3();
+	Encoder_Init_TIM4();
+    OLED_Show_LQLogo(); // 显示LOGO
 	delay_ms(500);		// 延时等待
-	OLED_CLS();			// 清屏	
-    
+	OLED_CLS();			// 清屏
+	OLED_P8x16Str(10, 0,"Motor_Enc Test");       //显示字符串
 	while(1)
 	{
-		sensor_Value[0] = Read_sensor(sensor1);
-		sensor_Value[1] = Read_sensor(sensor2);
-		sensor_Value[2] = Read_sensor(sensor3);
-		sensor_Value[3] = Read_sensor(sensor4);
-		sprintf(txt, "%d %d %d %d", sensor_Value[0], sensor_Value[1], sensor_Value[2], sensor_Value[3]);
-		OLED_P6x8Str(0, 2, txt); // 字符串
-		LED_Ctrl(RVS); 
-		delay_ms(200);
+		ECPULSE1=Read_Encoder(2);
+		sprintf(txt_pulse,"E1:%04d ",ECPULSE1);
+	    OLED_P8x16Str(0,2,txt_pulse);	
+		ECPULSE2=Read_Encoder(3);
+		sprintf(txt_pulse,"E2:%04d ",ECPULSE2);
+	    OLED_P8x16Str(0,4,txt_pulse);	
+		ECPULSE3=Read_Encoder(4);
+		sprintf(txt_pulse,"E3:%04d ",ECPULSE3);
+	    OLED_P8x16Str(0,6,txt_pulse);	
+    
+		if(Read_key(KEY1) == 1)      //按下KEY0键，占空比减小
+    {
+      if(duty > -PWM_DUTY_MAX)
+        duty += 200;
+    }
+    if(Read_key(KEY2) == 1)      //按下KEY2键，占空比加大
+    {
+      if(duty < PWM_DUTY_MAX)   //满占空比为10000，限制7200
+        duty = 0;
+    }
+    if(Read_key(KEY3) == 1)      //按下KEY1键，占空比中值
+    {
+      duty -= 200;
+    }
+		
+		MotorCtrl3w(duty,duty, duty);
+    sprintf(txt, "PWM: %5d;", duty);
+		OLED_P8x16Str(20,5,txt);
+		
+        delay_ms(100);   //编码器计数累计时间，时间越大 读取值越大
+		
 	}
 }
 
