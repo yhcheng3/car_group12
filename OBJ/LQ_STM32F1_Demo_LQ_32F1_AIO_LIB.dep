@@ -1,6 +1,6 @@
 Dependencies for Project 'LQ_STM32F1_Demo', Target 'LQ_32F1_AIO_LIB': (DO NOT MODIFY !)
 CompilerVersion: 5060960::V5.06 update 7 (build 960)::.\ARMCC
-F (..\USER\main.c)(0x66C30648)(-c --cpu Cortex-M3 -D__EVAL -g -O0 --apcs=interwork --split_sections -I ..\CMSIS -I ..\CMSIS\CORE -I ..\CMSIS\HAL_Driver\Inc -I ..\CMSIS\HAL_Driver\Inc\Legacy -I ..\MDK -I ..\USER\APP\inc -I ..\USER\DebugConfig -I ..\USER-IC:\Users\yuiha\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="536" -DSTM32F10X_MD -DUSE_HAL_DRIVER -DSTM32F103xE-o ..\obj\main.o --omf_browse ..\obj\main.crf --depend ..\obj\main.d)
+F (..\USER\main.c)(0x66C31442)(-c --cpu Cortex-M3 -D__EVAL -g -O0 --apcs=interwork --split_sections -I ..\CMSIS -I ..\CMSIS\CORE -I ..\CMSIS\HAL_Driver\Inc -I ..\CMSIS\HAL_Driver\Inc\Legacy -I ..\MDK -I ..\USER\APP\inc -I ..\USER\DebugConfig -I ..\USER-IC:\Users\yuiha\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="536" -DSTM32F10X_MD -DUSE_HAL_DRIVER -DSTM32F103xE-o ..\obj\main.o --omf_browse ..\obj\main.crf --depend ..\obj\main.d)
 I (..\USER\include.h)(0x66BD801E)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x60252374)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x6025237E)
