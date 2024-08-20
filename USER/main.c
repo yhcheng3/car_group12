@@ -20,7 +20,7 @@ struct CarSensor
 };
 
 
-void Car_sensor(struct CarSensor *car_sensor) 
+void read_sensor(struct CarSensor *car_sensor) 
 {
     car_sensor->a = Read_sensor(sensor1);
 		car_sensor->b = Read_sensor(sensor2);
@@ -76,39 +76,41 @@ int main(void)
 
 	while(1)
 	{
-		MotorFlag=1;
-		E_V = (car_sensor.a * 2 + car_sensor.b * 1) - (car_sensor.c * 1 + car_sensor.d * 2);
-		if (car_sensor.a == 1 && car_sensor.b == 1 && car_sensor.c == 1 && car_sensor.d == 1)//all black
-		{
-		car_V = -180;
-		}
-		else
-		{
-		if (abs(E_V) > 2) 
-		car_V = 160;//turn
-		else 
-		car_V = 200;//straight
-		}
-		moto_PWM(&Moto_PWM, car_V , E_V, MotorFlag);
-		Moto_PWM.L = ((Moto_PWM.L) < (-6000) ? (-6000) : ((Moto_PWM.L) > (6000) ? (6000) : (Moto_PWM.L)));
-		Moto_PWM.R = ((Moto_PWM.R) < (-6000) ? (-6000) : ((Moto_PWM.R) > (6000) ? (6000) : (Moto_PWM.R)));
-		Moto_PWM.B = ((Moto_PWM.B) < (-6000) ? (-6000) : ((Moto_PWM.B) > (6000) ? (6000) : (Moto_PWM.B)));
-		MotorCtrl3w(Moto_PWM.B, Moto_PWM.L, Moto_PWM.R);
+		MotorCtrl3w(1000, 1000, 1000);
+//		read_sensor(&car_sensor);
+//		MotorFlag=1;
+//		E_V = (car_sensor.a * 2 + car_sensor.b * 1) - (car_sensor.c * 1 + car_sensor.d * 2);
+//		if (car_sensor.a == 1 && car_sensor.b == 1 && car_sensor.c == 1 && car_sensor.d == 1)//all black
+//		{
+//		car_V = -180;
+//		}
+//		else
+//		{
+//		if (abs(E_V) > 2) 
+//		car_V = 160;//turn
+//		else 
+//		car_V = 200;//straight
+//		}
+//		moto_PWM(&Moto_PWM, car_V , E_V, MotorFlag);
+//		Moto_PWM.L = ((Moto_PWM.L) < (-6000) ? (-6000) : ((Moto_PWM.L) > (6000) ? (6000) : (Moto_PWM.L)));
+//		Moto_PWM.R = ((Moto_PWM.R) < (-6000) ? (-6000) : ((Moto_PWM.R) > (6000) ? (6000) : (Moto_PWM.R)));
+//		Moto_PWM.B = ((Moto_PWM.B) < (-6000) ? (-6000) : ((Moto_PWM.B) > (6000) ? (6000) : (Moto_PWM.B)));
+//		// MotorCtrl3w(Moto_PWM.B, Moto_PWM.L, Moto_PWM.R);
+//		
+//		
+//		ECPULSE1=Read_Encoder(2);
+//		sprintf(txt,"B:%04d ",ECPULSE1);
+//	    OLED_P8x16Str(0,0,txt);	
+//		ECPULSE2=Read_Encoder(3);
+//		sprintf(txt,"L:%04d ",ECPULSE2);
+//	    OLED_P8x16Str(0,2,txt);	
+//		ECPULSE3=Read_Encoder(4);
+//		sprintf(txt,"R:%04d ",ECPULSE3);
+//	    OLED_P8x16Str(0,4,txt);
+//		sprintf(txt, "%d %d %d %d", car_sensor.a, car_sensor.b, car_sensor.c, car_sensor.d);
+//		OLED_P6x8Str(0,6, txt);
 		
-		
-		ECPULSE1=Read_Encoder(2);
-		sprintf(txt,"B:%04d ",ECPULSE1);
-	    OLED_P8x16Str(0,0,txt);	
-		ECPULSE2=Read_Encoder(3);
-		sprintf(txt,"L:%04d ",ECPULSE2);
-	    OLED_P8x16Str(0,2,txt);	
-		ECPULSE3=Read_Encoder(4);
-		sprintf(txt,"R:%04d ",ECPULSE3);
-	    OLED_P8x16Str(0,4,txt);
-		sprintf(txt, "%d %d %d %d", car_sensor.a, car_sensor.b, car_sensor.c, car_sensor.d);
-		OLED_P6x8Str(0,6, txt);
-		
-		
+		delay_ms(100);
 	}
 }
 
