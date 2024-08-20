@@ -37,9 +37,9 @@ struct MotoPWM
 void moto_PWM(struct MotoPWM  *Moto_PWM, int car_V, int E_V, int MotorFlag) {
     if (MotorFlag)
 		{
-    Moto_PWM->L = car_V + E_V * 200;
-		Moto_PWM->R = -car_V + E_V * 200;
-		Moto_PWM->B = E_V * 230;
+    Moto_PWM->L = car_V + E_V * 100;
+		Moto_PWM->R = -car_V + E_V * 100;
+		Moto_PWM->B = E_V * 150;
 		}
 		else{
 		Moto_PWM->L = 0;
@@ -73,22 +73,21 @@ int main(void)
 	
 	delay_ms(500);		// ÑÓÊ±µÈ´ý
 	OLED_CLS();			// ÇåÆÁ	
-	
-  OLED_P6x8Str(0,0,"trace test");
+
 	while(1)
 	{
 		MotorFlag=1;
 		E_V = (car_sensor.a * 2 + car_sensor.b * 1) - (car_sensor.c * 1 + car_sensor.d * 2);
 		if (car_sensor.a == 1 && car_sensor.b == 1 && car_sensor.c == 1 && car_sensor.d == 1)//all black
 		{
-		car_V = -800;
+		car_V = -180;
 		}
 		else
 		{
 		if (abs(E_V) > 2) 
-		car_V = 600;//turn
+		car_V = 160;//turn
 		else 
-		car_V = 1000;//straight
+		car_V = 200;//straight
 		}
 		moto_PWM(&Moto_PWM, car_V , E_V, MotorFlag);
 		Moto_PWM.L = ((Moto_PWM.L) < (-6000) ? (-6000) : ((Moto_PWM.L) > (6000) ? (6000) : (Moto_PWM.L)));
@@ -98,17 +97,16 @@ int main(void)
 		
 		
 		ECPULSE1=Read_Encoder(2);
-		sprintf(txt,"E1:%04d ",ECPULSE1);
-	    OLED_P8x16Str(0,2,txt);	
+		sprintf(txt,"B:%04d ",ECPULSE1);
+	    OLED_P8x16Str(0,0,txt);	
 		ECPULSE2=Read_Encoder(3);
-		sprintf(txt,"E2:%04d ",ECPULSE2);
-	    OLED_P8x16Str(0,4,txt);	
+		sprintf(txt,"L:%04d ",ECPULSE2);
+	    OLED_P8x16Str(0,2,txt);	
 		ECPULSE3=Read_Encoder(4);
-		sprintf(txt,"E3:%04d ",ECPULSE3);
-	    OLED_P8x16Str(0,6,txt);
+		sprintf(txt,"R:%04d ",ECPULSE3);
+	    OLED_P8x16Str(0,4,txt);
 		sprintf(txt, "%d %d %d %d", car_sensor.a, car_sensor.b, car_sensor.c, car_sensor.d);
-		OLED_P6x8Str(0, 10, txt);
-		
+		OLED_P6x8Str(0,6, txt);
 		
 		
 	}
