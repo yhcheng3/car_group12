@@ -28,6 +28,8 @@
 //#include "color_piece.h"
 #include "ANO_DT.h"
 
+#include "control.h"
+
 #define OLED 1
  
 
