@@ -12,9 +12,7 @@ QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 //int32_t NowTime = 0;
 //uint16_t BatVolt = 0;           // 电池电压采集
 
-TIM_HandleTypeDef 	TIM1_Handler;
-TIM_OC_InitTypeDef  TIM1_CH1Handler;    		//定时器1通道1句柄
-    
+
 //#define MOTOR_FREQUENCY    PWM_DUTY_MAX
 
 //#define USE7843or7971   //USEDRV8701 使用龙邱不同的驱动模块，选择对应的宏定义
@@ -31,6 +29,8 @@ TIM_OC_InitTypeDef  TIM1_CH1Handler;    		//定时器1通道1句柄
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void TIM1_PWM_Init(u16 arr,u16 psc)
 {
+    TIM_HandleTypeDef 	TIM1_Handler;
+    TIM_OC_InitTypeDef  TIM1_CH1Handler;    		//定时器1通道1句柄
     
 	TIM1_Handler.Instance=TIM1;             		//定时器1
 	TIM1_Handler.Init.Prescaler=psc;           	    //定时器分频
@@ -40,7 +40,7 @@ void TIM1_PWM_Init(u16 arr,u16 psc)
 	HAL_TIM_PWM_Init(&TIM1_Handler);           	    //初始化PWM
 	HAL_TIM_Base_Start_IT(&TIM1_Handler);           //使能定时器1和定时器1更新中断：TIM_IT_UPDATE  
 
-	TIM1_CH1Handler.OCMode=TIM_OCMODE_PWM1; 		//模式选择PWM1
+	TIM1_CH1Handler.OCMode=TIM_OCMODE_PWM2; 		//模式选择PWM1
 	TIM1_CH1Handler.Pulse=	0;            			//设置比较值,此值用来确定占空比，默认比较值为自动重装载值的一半,即占空比为50%
 	TIM1_CH1Handler.OCPolarity=TIM_OCPOLARITY_HIGH; //输出比较极性为高  
 
