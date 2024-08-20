@@ -16,16 +16,16 @@ QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 
 struct CarSensor
 {
-	int a,b,c,d;
+	uint8_t a,b,c,d;
 };
 
 
 void Car_sensor(struct CarSensor *car_sensor) 
 {
-    car_sensor->a = Read_sensor(1);
-		car_sensor->b = Read_sensor(2);
-    car_sensor->c = Read_sensor(3);
-    car_sensor->d = Read_sensor(4);
+    car_sensor->a = Read_sensor(sensor1);
+		car_sensor->b = Read_sensor(sensor2);
+    car_sensor->c = Read_sensor(sensor3);
+    car_sensor->d = Read_sensor(sensor4);
 }
 
 
@@ -55,6 +55,7 @@ int main(void)
   int E_V, car_V;
 	int MotorFlag;
 	char txt[20];
+	int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
 //-----------------------系统初始化配置----------------------------
 	HAL_Init();			  // 初始化HAL库
 	SystemClock_Config(); // 设置时钟9倍频,72M
@@ -72,7 +73,8 @@ int main(void)
 	
 	delay_ms(500);		// 延时等待
 	OLED_CLS();			// 清屏	
-    
+	
+  OLED_P6x8Str(0,0,"trace test");
 	while(1)
 	{
 		MotorFlag=1;
@@ -93,6 +95,22 @@ int main(void)
 		Moto_PWM.R = ((Moto_PWM.R) < (-6000) ? (-6000) : ((Moto_PWM.R) > (6000) ? (6000) : (Moto_PWM.R)));
 		Moto_PWM.B = ((Moto_PWM.B) < (-6000) ? (-6000) : ((Moto_PWM.B) > (6000) ? (6000) : (Moto_PWM.B)));
 		MotorCtrl3w(Moto_PWM.B, Moto_PWM.L, Moto_PWM.R);
+		
+		
+		ECPULSE1=Read_Encoder(2);
+		sprintf(txt,"E1:%04d ",ECPULSE1);
+	    OLED_P8x16Str(0,2,txt);	
+		ECPULSE2=Read_Encoder(3);
+		sprintf(txt,"E2:%04d ",ECPULSE2);
+	    OLED_P8x16Str(0,4,txt);	
+		ECPULSE3=Read_Encoder(4);
+		sprintf(txt,"E3:%04d ",ECPULSE3);
+	    OLED_P8x16Str(0,6,txt);
+		sprintf(txt, "%d %d %d %d", car_sensor.a, car_sensor.b, car_sensor.c, car_sensor.d);
+		OLED_P6x8Str(0, 10, txt);
+		
+		
+		
 	}
 }
 
