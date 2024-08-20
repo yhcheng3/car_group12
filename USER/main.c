@@ -1,128 +1,329 @@
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-@±à    Ð´£ºÁúÇñ¿Æ¼¼
-@E-mail  £ºchiusir@163.com
-@±àÒëIDE £ºKEIL5.25.3¼°ÒÔÉÏ°æ±¾
-@Ê¹ÓÃÆ½Ì¨£º±±¾©ÁúÇñÖÇÄÜ¿Æ¼¼È«Ïò¸£À´ÂÖÐ¡³µ
-@×îºó¸üÐÂ£º2022Äê02ÔÂ19ÈÕ£¬³ÖÐø¸üÐÂ£¬Çë¹Ø×¢×îÐÂ°æ£¡
-@¹¦ÄÜ½éÉÜ£º
-@Ïà¹ØÐÅÏ¢²Î¿¼ÏÂÁÐµØÖ·
-@Íø    Õ¾£ºhttp://www.lqist.cn
-@ÌÔ±¦µêÆÌ£ºhttp://longqiu.taobao.com
-@Èí¼þ°æ±¾£ºV1.0 °æÈ¨ËùÓÐ£¬µ¥Î»Ê¹ÓÃÇëÏÈÁªÏµÊÚÈ¨
+@ï¿½ï¿½    Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½
+@E-mail  ï¿½ï¿½chiusir@163.com
+@ï¿½ï¿½ï¿½ï¿½IDE ï¿½ï¿½KEIL5.25.3ï¿½ï¿½ï¿½ï¿½ï¿½Ï°æ±¾
+@Ê¹ï¿½ï¿½Æ½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü¿Æ¼ï¿½È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½
+@ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½2022ï¿½ï¿½02ï¿½ï¿½19ï¿½Õ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½ï¿½Â°æ£¡
+@ï¿½ï¿½ï¿½Ü½ï¿½ï¿½Ü£ï¿½
+@ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½Î¿ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ö·
+@ï¿½ï¿½    Õ¾ï¿½ï¿½http://www.lqist.cn
+@ï¿½Ô±ï¿½ï¿½ï¿½ï¿½Ì£ï¿½http://longqiu.taobao.com
+@ï¿½ï¿½ï¿½ï¿½ï¿½æ±¾ï¿½ï¿½V1.0 ï¿½ï¿½È¨ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½Î»Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½È¨
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 
-// °üº¬ËùÓÐÍ·ÎÄ¼þ
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½Ä¼ï¿½
 #include "include.h"
+#define PERIOD 50
 
-int main(void)
+struct CarSensor
 {
-  int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
-	char txt_pulse[30];
-	
-	int16_t duty = 1000,flag = 0;
-  char txt[16];
-	
-	int target = 80;
-	float output = 0;
-	
-//----PID----
-	pid_param_t pid;
-	PidInit(&pid);
-	pid.kd = 10;
-	pid.ki = 10;
-	pid.kp = 10;
-	
-	
-//-----------------------ÏµÍ³³õÊ¼»¯ÅäÖÃ----------------------------
-	HAL_Init();			  // ³õÊ¼»¯HAL¿â
-	SystemClock_Config(); // ÉèÖÃÊ±ÖÓ9±¶Æµ,72M
-	delay_init(72);		  // ³õÊ¼»¯ÑÓÊ±º¯Êý
-	JTAG_Set(SWD_ENABLE); // ´ò¿ªSWD½Ó¿Ú ¿ÉÒÔÀûÓÃÖ÷°åµÄSWD½Ó¿Úµ÷ÊÔ
-//-----------------------------------------------------------------
-	LED_Init();			// LED³õÊ¼»¯
-	OLED_Init();		// OLED³õÊ¼»¯    
-	Encoder_Init_TIM2();   //±àÂëÆ÷Õ¼ÓÃ¶¨Ê±Æ÷2,3,4£¬Ó²¼þAB½âÂë¶ÁÈ¡
-	Encoder_Init_TIM3();
-	Encoder_Init_TIM4();
-    OLED_Show_LQLogo(); // ÏÔÊ¾LOGO
-	delay_ms(500);		// ÑÓÊ±µÈ´ý
-	OLED_CLS();			// ÇåÆÁ
-	MotorInit();
-	// OLED_P8x16Str(10, 0,"Motor_Enc Test");       //ÏÔÊ¾×Ö·û´®
-	while(1)
-	{
-		ECPULSE1=Read_Encoder(2);
-		sprintf(txt_pulse,"E1:%04d ",ECPULSE1);
-	    OLED_P8x16Str(0,0,txt_pulse);	
-		
-		output = PidLocCtrl(&pid, (ECPULSE1 * 10) - duty);
-//		ECPULSE2=Read_Encoder(3);
-//		sprintf(txt_pulse,"E2:%04d ",ECPULSE2);
-//	    OLED_P8x16Str(0,4,txt_pulse);	
-		
-//		ECPULSE3=Read_Encoder(4);
-//		sprintf(txt_pulse,"E3:%04d ",ECPULSE3);
-//	    OLED_P8x16Str(0,6,txt_pulse);	
-    
-//		if(Read_key(KEY1) == 1)      //°´ÏÂKEY0¼ü£¬Õ¼¿Õ±È¼õÐ¡
-//    {
-//      if(duty > -PWM_DUTY_MAX)
-//        duty += 200;
-//    }
-//    if(Read_key(KEY2) == 1)      //°´ÏÂKEY2¼ü£¬Õ¼¿Õ±È¼Ó´ó
-//    {
-//      if(duty < PWM_DUTY_MAX)   //ÂúÕ¼¿Õ±ÈÎª10000£¬ÏÞÖÆ7200
-//        duty = 0;
-//    }
-//    if(Read_key(KEY3) == 1)      //°´ÏÂKEY1¼ü£¬Õ¼¿Õ±ÈÖÐÖµ
-//    {
-//      duty -= 200;
-//    }
-		
-    if(Read_key(KEY1) == 1)      //°´ÏÂKEY2¼ü£¬Õ¼¿Õ±È¼Ó´ó
-    {
-      pid.kp += 1;
-    }
-		if(Read_key(KEY2) == 1)      //°´ÏÂKEY2¼ü£¬Õ¼¿Õ±È¼Ó´ó
-    {
-      pid.kp += 1;
-    }
-		if(Read_key(KEY3) == 1)      //°´ÏÂKEY2¼ü£¬Õ¼¿Õ±È¼Ó´ó
-    {
-      pid.kp += 1;
-    }
-		if(Read_key(KEY3) == 1)      //°´ÏÂKEY2¼ü£¬Õ¼¿Õ±È¼Ó´ó
-    {
-      pid.kp += 1;
-    }
-		
-		if(Read_key(KEY4) == 1)      //°´ÏÂKEY2¼ü£¬Õ¼¿Õ±È¼Ó´ó
-    {
-      pid.ki += 1;
-    }
-		
-		if(Read_key(KEY5) == 1)      //°´ÏÂKEY2¼ü£¬Õ¼¿Õ±È¼Ó´ó
-    {
-      pid.kd += 1;
-    }
-		sprintf(txt_pulse,"E2:%04f ",pid.kp);
-	    OLED_P8x16Str(0,2,txt_pulse);	
-		sprintf(txt_pulse,"E2:%04f ",pid.ki);
-	    OLED_P8x16Str(0,4,txt_pulse);	
-		sprintf(txt_pulse,"E2:%04f ",pid.kd);
-	    OLED_P8x16Str(0,6,txt_pulse);	
-		
-		
-		output = constrain_float(output, -2000, 2000);
-		
-		MotorCtrl3w(output, 0, 0);
-		// MotorCtrl3w(duty, duty, duty);
-    // sprintf(txt, "PWM: %5d;", duty);
-		// OLED_P8x16Str(10,0,txt);
-		
-		LED_Ctrl(RVS);       //µçÆ½·­×ª,LEDÉÁË¸
-    delay_ms(200);   //±àÂëÆ÷¼ÆÊýÀÛ¼ÆÊ±¼ä£¬Ê±¼äÔ½´ó ¶ÁÈ¡ÖµÔ½´ó
-		
+	uint8_t a,b,c,d;
+};
+
+uint8_t invert(uint8_t val) // Use if background is white
+{
+	if (val == 0) val = 1;
+	else val = 0;
+	return val;
+}
+
+void read_sensor(struct CarSensor *carSensor) 
+{
+    carSensor->a = invert(Read_sensor(sensor1));
+		carSensor->b = invert(Read_sensor(sensor2));
+    carSensor->c = invert(Read_sensor(sensor3));
+    carSensor->d = invert(Read_sensor(sensor4));
+}
+
+
+struct MotoPWM
+{
+	int16_t B,L,R;
+};
+
+void set_PWM(struct MotoPWM  *motoPWM, int car_V, int E_V, int motorFlag) {
+    if (motorFlag)
+		{
+    motoPWM->L = car_V + E_V * 150;
+		motoPWM->R = -car_V + E_V * 150;
+			if ((E_V * 300) < 800 && E_V > 0) {
+				motoPWM->B = 800;
+			} else if ((E_V * 300) > -800 && E_V < 0) {
+				motoPWM->B = -800;
+			} else {
+				motoPWM->B = E_V * 300;
+			}
+		}
+		else{
+		motoPWM->L = 0;
+		motoPWM->R = 0;
+		motoPWM->B = 0;
+		}
+
+}
+
+void circle_PWM(struct MotoPWM *motoPWM, int *rotate_cnt, int *rotate_dir, int threshold) {
+	if (abs(*rotate_cnt * PERIOD) < threshold) { // Around 135 deg
+		if (*rotate_dir == 0) { // Right
+			motoPWM->L = 800;
+			motoPWM->R = 800;
+			motoPWM->B = 800;
+			(*rotate_cnt)++;
+		}
+		else { // Left
+			motoPWM->L = -800;
+			motoPWM->R = -800;
+			motoPWM->B = -800;
+			(*rotate_cnt)--;
+		}
+	}
+	else if (abs(*rotate_cnt * PERIOD) >= threshold) {
+		if (*rotate_dir == 1) { // Right
+			motoPWM->L = threshold * 3;
+			motoPWM->R = threshold * 3;
+			motoPWM->B = threshold * 3;
+			*rotate_dir = 0;
+			(*rotate_cnt) = 0;
+			MotorCtrl3w(motoPWM->B, motoPWM->L, motoPWM->R);
+			delay_ms(PERIOD);
+			MotorCtrl3w(motoPWM->B, motoPWM->L, motoPWM->R);
+			delay_ms(PERIOD);
+		}
+		else { // Left
+			motoPWM->L = -3500;
+			motoPWM->R = -3500;
+			motoPWM->B = -3500;
+			*rotate_dir = 1;
+			(*rotate_cnt) = 0;
+			MotorCtrl3w(motoPWM->B, motoPWM->L, motoPWM->R);
+			delay_ms(PERIOD);
+			MotorCtrl3w(motoPWM->B, motoPWM->L, motoPWM->R);
+			delay_ms(PERIOD);
+		}
 	}
 }
+
+//void set_PWM(struct MotoPWM *motoPWM, struct CarSensor *carSensor, int prev_dir, int motorFlag) 
+//{
+//	if (!motorFlag) 
+//	{
+//		motoPWM->L = 0;
+//		motoPWM->R = 0;
+//		motoPWM->B = 0;
+//	} 
+//	else 
+//	{	
+//		if (carSensor->a == 1 && carSensor->b == 1 && carSensor->c == 1 && carSensor->d == 1) //all black
+//		{
+//			motoPWM->L = -800;
+//			motoPWM->R = 800;
+//			motoPWM->B = 0;
+//		}
+//	}
+//}
+
+int main(void)
+{	
+//------Basic Params------
+	struct CarSensor carSensor;
+	struct MotoPWM motoPWM;
+  int E_V, car_V;
+	int motorFlag;
+	int prev_E_V;
+	char txt[20];
+	int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
+//------Reverse Params--------
+	int reverse_cnt = 0, anti_reverse_cnt = 0;
+	int rotate_cnt = 0, rotate_dir = 0;
+
+//-----------------------ÏµÍ³ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½----------------------------
+	HAL_Init();			  // ï¿½ï¿½Ê¼ï¿½ï¿½HALï¿½ï¿½
+	SystemClock_Config(); // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½9ï¿½ï¿½Æµ,72M
+	delay_init(72);		  // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½
+	JTAG_Set(SWD_ENABLE); // ï¿½ï¿½SWDï¿½Ó¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½SWDï¿½Ó¿Úµï¿½ï¿½ï¿½
+//-----------------------------------------------------------------
+	LED_Init();			// LEDï¿½ï¿½Ê¼ï¿½ï¿½
+	OLED_Init();		// OLEDï¿½ï¿½Ê¼ï¿½ï¿½    
+	Encoder_Init_TIM2();   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Ã¶ï¿½Ê±ï¿½ï¿½2,3,4ï¿½ï¿½Ó²ï¿½ï¿½ABï¿½ï¿½ï¿½ï¿½ï¿½È¡
+	Encoder_Init_TIM3();
+	Encoder_Init_TIM4();
+    OLED_Show_LQLogo(); // ï¿½ï¿½Ê¾LOGO
+	delay_ms(500);		// ï¿½ï¿½Ê±ï¿½È´ï¿½
+	OLED_CLS();			// ï¿½ï¿½ï¿½ï¿½
+	MotorInit();
+	// OLED_P8x16Str(10, 0,"Motor_Enc Test");       //ï¿½ï¿½Ê¾ï¿½Ö·ï¿½ï¿½ï¿½
+	while(1)
+	{
+		read_sensor(&carSensor);
+		motorFlag = 1;
+		
+		E_V = (carSensor.a * 2 + carSensor.b * 1) - (carSensor.c * 1 + carSensor.d * 2);
+		if (carSensor.a == 1 && carSensor.b == 1 && carSensor.c == 1 && carSensor.d == 1) { //|| 
+				// (carSensor.a == 0 && carSensor.b == 0 && carSensor.c == 0 && carSensor.d == 0))//all black
+		
+//			if (abs(prev_E_V) >= 1) {
+//				car_V = 900;
+//				E_V = prev_E_V;
+//			}
+			if (reverse_cnt < 100) {
+				circle_PWM(&motoPWM, &rotate_cnt, &rotate_dir, 700);
+				reverse_cnt += 2;
+			} else {
+				car_V = -800;
+				set_PWM(&motoPWM, car_V , E_V, 1);
+				reverse_cnt = 100;
+			}
+		}
+		else
+		{
+			if (reverse_cnt > 0) anti_reverse_cnt++;
+			if (anti_reverse_cnt >= 3) {
+				reverse_cnt = 0;
+				anti_reverse_cnt = 0;
+			}
+			rotate_cnt = 0;
+			
+			if (abs(E_V) > 2) 
+			car_V = 800;//turn
+			else 
+			car_V = 2000;//straight
+			prev_E_V = E_V;
+			set_PWM(&motoPWM, car_V , E_V, 1);
+		}
+		motoPWM.L = ((motoPWM.L) < (-6000) ? (-6000) : ((motoPWM.L) > (6000) ? (6000) : (motoPWM.L)));
+		motoPWM.R = ((motoPWM.R) < (-6000) ? (-6000) : ((motoPWM.R) > (6000) ? (6000) : (motoPWM.R)));
+		motoPWM.B = ((motoPWM.B) < (-6000) ? (-6000) : ((motoPWM.B) > (6000) ? (6000) : (motoPWM.B)));
+		
+		ECPULSE1=Read_Encoder(2);
+		//sprintf(txt,"B:%04d ",ECPULSE1);
+		sprintf(txt,"L:%04d ",motoPWM.L);
+	    OLED_P8x16Str(0,0,txt);	
+		ECPULSE2=Read_Encoder(3);
+		//sprintf(txt,"L:%04d ",ECPULSE2);
+		sprintf(txt,"R:%04d ",motoPWM.R);
+	    OLED_P8x16Str(0,2,txt);	
+		ECPULSE3=Read_Encoder(4);
+		//sprintf(txt,"R:%04d ",ECPULSE3);
+		sprintf(txt,"B:%04d ",motoPWM.B);
+	    OLED_P8x16Str(0,4,txt);
+		sprintf(txt, "%d %d %d %d", carSensor.a, carSensor.b, carSensor.c, carSensor.d);
+		OLED_P6x8Str(0,6, txt);
+		
+		//MotorCtrl3w(1000, 1000, 1000);
+		MotorCtrl3w(motoPWM.B, motoPWM.L, motoPWM.R);
+		delay_ms(PERIOD);
+	}
+}
+
+//int main(void)
+// {
+//   int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
+// 	char txt_pulse[30];
+	
+// 	int16_t duty = 1000,flag = 0;
+//   char txt[16];
+	
+// 	int target = 80;
+// 	float output = 0;
+	
+// //----PID----
+// 	pid_param_t pid;
+// 	PidInit(&pid);
+// 	pid.kd = 10;
+// 	pid.ki = 10;
+// 	pid.kp = 10;
+	
+	
+// //-----------------------ÏµÍ³ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½----------------------------
+// 	HAL_Init();			  // ï¿½ï¿½Ê¼ï¿½ï¿½HALï¿½ï¿½
+// 	SystemClock_Config(); // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½9ï¿½ï¿½Æµ,72M
+// 	delay_init(72);		  // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½
+// 	JTAG_Set(SWD_ENABLE); // ï¿½ï¿½SWDï¿½Ó¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½SWDï¿½Ó¿Úµï¿½ï¿½ï¿½
+// //-----------------------------------------------------------------
+// 	LED_Init();			// LEDï¿½ï¿½Ê¼ï¿½ï¿½
+// 	OLED_Init();		// OLEDï¿½ï¿½Ê¼ï¿½ï¿½    
+// 	Encoder_Init_TIM2();   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Ã¶ï¿½Ê±ï¿½ï¿½2,3,4ï¿½ï¿½Ó²ï¿½ï¿½ABï¿½ï¿½ï¿½ï¿½ï¿½È¡
+// 	Encoder_Init_TIM3();
+// 	Encoder_Init_TIM4();
+//     OLED_Show_LQLogo(); // ï¿½ï¿½Ê¾LOGO
+// 	delay_ms(500);		// ï¿½ï¿½Ê±ï¿½È´ï¿½
+// 	OLED_CLS();			// ï¿½ï¿½ï¿½ï¿½
+// 	MotorInit();
+// 	// OLED_P8x16Str(10, 0,"Motor_Enc Test");       //ï¿½ï¿½Ê¾ï¿½Ö·ï¿½ï¿½ï¿½
+// 	while(1)
+// 	{
+// 		ECPULSE1=Read_Encoder(2);
+// 		sprintf(txt_pulse,"E1:%04d ",ECPULSE1);
+// 	    OLED_P8x16Str(0,0,txt_pulse);	
+		
+// 		output = PidLocCtrl(&pid, (ECPULSE1 * 10) - duty);
+// //		ECPULSE2=Read_Encoder(3);
+// //		sprintf(txt_pulse,"E2:%04d ",ECPULSE2);
+// //	    OLED_P8x16Str(0,4,txt_pulse);	
+		
+// //		ECPULSE3=Read_Encoder(4);
+// //		sprintf(txt_pulse,"E3:%04d ",ECPULSE3);
+// //	    OLED_P8x16Str(0,6,txt_pulse);	
+    
+// //		if(Read_key(KEY1) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY0ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼ï¿½Ð¡
+// //    {
+// //      if(duty > -PWM_DUTY_MAX)
+// //        duty += 200;
+// //    }
+// //    if(Read_key(KEY2) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
+// //    {
+// //      if(duty < PWM_DUTY_MAX)   //ï¿½ï¿½Õ¼ï¿½Õ±ï¿½Îª10000ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½7200
+// //        duty = 0;
+// //    }
+// //    if(Read_key(KEY3) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY1ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±ï¿½ï¿½ï¿½Öµ
+// //    {
+// //      duty -= 200;
+// //    }
+		
+//     if(Read_key(KEY1) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
+//     {
+//       pid.kp += 1;
+//     }
+// 		if(Read_key(KEY2) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
+//     {
+//       pid.kp += 1;
+//     }
+// 		if(Read_key(KEY3) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
+//     {
+//       pid.kp += 1;
+//     }
+// 		if(Read_key(KEY3) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
+//     {
+//       pid.kp += 1;
+//     }
+		
+// 		if(Read_key(KEY4) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
+//     {
+//       pid.ki += 1;
+//     }
+		
+// 		if(Read_key(KEY5) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
+//     {
+//       pid.kd += 1;
+//     }
+// 		sprintf(txt_pulse,"E2:%04f ",pid.kp);
+// 	    OLED_P8x16Str(0,2,txt_pulse);	
+// 		sprintf(txt_pulse,"E2:%04f ",pid.ki);
+// 	    OLED_P8x16Str(0,4,txt_pulse);	
+// 		sprintf(txt_pulse,"E2:%04f ",pid.kd);
+// 	    OLED_P8x16Str(0,6,txt_pulse);	
+		
+		
+// 		output = constrain_float(output, -2000, 2000);
+		
+// 		MotorCtrl3w(output, 0, 0);
+// 		// MotorCtrl3w(duty, duty, duty);
+//     // sprintf(txt, "PWM: %5d;", duty);
+// 		// OLED_P8x16Str(10,0,txt);
+		
+// 		LED_Ctrl(RVS);       //ï¿½ï¿½Æ½ï¿½ï¿½×ª,LEDï¿½ï¿½Ë¸
+//     delay_ms(200);   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û¼ï¿½Ê±ï¿½ä£¬Ê±ï¿½ï¿½Ô½ï¿½ï¿½ ï¿½ï¿½È¡ÖµÔ½ï¿½ï¿½
+		
+// 	}
+// }
 
