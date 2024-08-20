@@ -28,29 +28,19 @@ Project File Date:  08/19/2024
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'LQ_32F1_AIO_LIB'
 compiling main.c...
-..\USER\main.c(53): warning:  #177-D: variable "car_sensor"  was declared but never referenced
-  	struct CarSensor car_sensor;
-..\USER\main.c(54): warning:  #177-D: variable "Moto_PWM"  was declared but never referenced
-  	struct MotoPWM Moto_PWM;
-..\USER\main.c(55): warning:  #177-D: variable "E_V"  was declared but never referenced
-    int E_V, car_V;
-..\USER\main.c(55): warning:  #177-D: variable "car_V"  was declared but never referenced
-    int E_V, car_V;
-..\USER\main.c(56): warning:  #177-D: variable "MotorFlag"  was declared but never referenced
-  	int MotorFlag;
-..\USER\main.c(57): warning:  #177-D: variable "txt"  was declared but never referenced
-  	char txt[20];
-..\USER\main.c(58): warning:  #177-D: variable "ECPULSE1"  was declared but never referenced
-  	int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
-..\USER\main.c(58): warning:  #177-D: variable "ECPULSE2"  was declared but never referenced
-  	int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
-..\USER\main.c(58): warning:  #177-D: variable "ECPULSE3"  was declared but never referenced
-  	int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
-..\USER\main.c: 9 warnings, 0 errors
+..\USER\main.c(19): warning:  #177-D: variable "ECPULSE2"  was declared but never referenced
+    int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
+..\USER\main.c(19): warning:  #177-D: variable "ECPULSE3"  was declared but never referenced
+    int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
+..\USER\main.c(22): warning:  #177-D: variable "flag"  was declared but never referenced
+  	int16_t duty = 1000,flag = 0;
+..\USER\main.c(25): warning:  #177-D: variable "target"  was declared but never referenced
+  	int target = 80;
+..\USER\main.c: 4 warnings, 0 errors
 linking...
-Program Size: Code=9944 RO-data=4092 RW-data=36 ZI-data=3148  
+Program Size: Code=12290 RO-data=4094 RW-data=36 ZI-data=3244  
 FromELF: creating hex file...
-"..\OBJ\USART.axf" - 0 Error(s), 9 Warning(s).
+"..\OBJ\USART.axf" - 0 Error(s), 4 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -63,7 +53,7 @@ Package Vendor: Keil
   C:\Users\yuiha\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\2.3.0\Device\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:04
+Build Time Elapsed:  00:00:07
 </pre>
 </body>
 </html>
