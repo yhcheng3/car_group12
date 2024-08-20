@@ -14,14 +14,48 @@ QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 // 包含所有头文件
 #include "include.h"
 
-int main(void)
+struct CarSensor
 {
-  int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
-	char txt_pulse[30];
-	
-	    int16_t duty = 1000,flag = 0;
-    char txt[16];
-	
+	uint8_t a,b,c,d;
+};
+
+
+void read_sensor(struct CarSensor *car_sensor) 
+{
+    car_sensor->a = Read_sensor(sensor1);
+		car_sensor->b = Read_sensor(sensor2);
+    car_sensor->c = Read_sensor(sensor3);
+    car_sensor->d = Read_sensor(sensor4);
+}
+
+
+struct MotoPWM
+{
+	int B,L,R;
+};
+
+void moto_PWM(struct MotoPWM  *Moto_PWM, int car_V, int E_V, int MotorFlag) {
+    if (MotorFlag)
+		{
+    Moto_PWM->L = car_V + E_V * 100;
+		Moto_PWM->R = -car_V + E_V * 100;
+		Moto_PWM->B = E_V * 150;
+		}
+		else{
+		Moto_PWM->L = 0;
+		Moto_PWM->R = 0;
+		Moto_PWM->B = 0;
+		}
+}
+
+int main(void)
+{	
+	struct CarSensor car_sensor;
+	struct MotoPWM Moto_PWM;
+  int E_V, car_V;
+	int MotorFlag;
+	char txt[20];
+	int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
 //-----------------------系统初始化配置----------------------------
 	HAL_Init();			  // 初始化HAL库
 	SystemClock_Config(); // 设置时钟9倍频,72M
@@ -29,47 +63,54 @@ int main(void)
 	JTAG_Set(SWD_ENABLE); // 打开SWD接口 可以利用主板的SWD接口调试
 //-----------------------------------------------------------------
 	LED_Init();			// LED初始化
-	OLED_Init();		// OLED初始化    
+	OLED_Init();		// OLED初始化   
+	OLED_Show_LQLogo(); // 显示LOGO
+	sensor_init();
+	MotorInit();
 	Encoder_Init_TIM2();   //编码器占用定时器2,3,4，硬件AB解码读取
 	Encoder_Init_TIM3();
 	Encoder_Init_TIM4();
-    OLED_Show_LQLogo(); // 显示LOGO
+	
 	delay_ms(500);		// 延时等待
-	OLED_CLS();			// 清屏
-	OLED_P8x16Str(10, 0,"Motor_Enc Test");       //显示字符串
+	OLED_CLS();			// 清屏	
+
 	while(1)
 	{
-		ECPULSE1=Read_Encoder(2);
-		sprintf(txt_pulse,"E1:%04d ",ECPULSE1);
-	    OLED_P8x16Str(0,2,txt_pulse);	
-		ECPULSE2=Read_Encoder(3);
-		sprintf(txt_pulse,"E2:%04d ",ECPULSE2);
-	    OLED_P8x16Str(0,4,txt_pulse);	
-		ECPULSE3=Read_Encoder(4);
-		sprintf(txt_pulse,"E3:%04d ",ECPULSE3);
-	    OLED_P8x16Str(0,6,txt_pulse);	
-    
-		if(Read_key(KEY1) == 1)      //按下KEY0键，占空比减小
-    {
-      if(duty > -PWM_DUTY_MAX)
-        duty += 200;
-    }
-    if(Read_key(KEY2) == 1)      //按下KEY2键，占空比加大
-    {
-      if(duty < PWM_DUTY_MAX)   //满占空比为10000，限制7200
-        duty = 0;
-    }
-    if(Read_key(KEY3) == 1)      //按下KEY1键，占空比中值
-    {
-      duty -= 200;
-    }
+		MotorCtrl3w(1000, 1000, 1000);
+//		read_sensor(&car_sensor);
+//		MotorFlag=1;
+//		E_V = (car_sensor.a * 2 + car_sensor.b * 1) - (car_sensor.c * 1 + car_sensor.d * 2);
+//		if (car_sensor.a == 1 && car_sensor.b == 1 && car_sensor.c == 1 && car_sensor.d == 1)//all black
+//		{
+//		car_V = -180;
+//		}
+//		else
+//		{
+//		if (abs(E_V) > 2) 
+//		car_V = 160;//turn
+//		else 
+//		car_V = 200;//straight
+//		}
+//		moto_PWM(&Moto_PWM, car_V , E_V, MotorFlag);
+//		Moto_PWM.L = ((Moto_PWM.L) < (-6000) ? (-6000) : ((Moto_PWM.L) > (6000) ? (6000) : (Moto_PWM.L)));
+//		Moto_PWM.R = ((Moto_PWM.R) < (-6000) ? (-6000) : ((Moto_PWM.R) > (6000) ? (6000) : (Moto_PWM.R)));
+//		Moto_PWM.B = ((Moto_PWM.B) < (-6000) ? (-6000) : ((Moto_PWM.B) > (6000) ? (6000) : (Moto_PWM.B)));
+//		// MotorCtrl3w(Moto_PWM.B, Moto_PWM.L, Moto_PWM.R);
+//		
+//		
+//		ECPULSE1=Read_Encoder(2);
+//		sprintf(txt,"B:%04d ",ECPULSE1);
+//	    OLED_P8x16Str(0,0,txt);	
+//		ECPULSE2=Read_Encoder(3);
+//		sprintf(txt,"L:%04d ",ECPULSE2);
+//	    OLED_P8x16Str(0,2,txt);	
+//		ECPULSE3=Read_Encoder(4);
+//		sprintf(txt,"R:%04d ",ECPULSE3);
+//	    OLED_P8x16Str(0,4,txt);
+//		sprintf(txt, "%d %d %d %d", car_sensor.a, car_sensor.b, car_sensor.c, car_sensor.d);
+//		OLED_P6x8Str(0,6, txt);
 		
-		MotorCtrl3w(duty,duty, duty);
-    sprintf(txt, "PWM: %5d;", duty);
-		OLED_P8x16Str(20,5,txt);
-		
-        delay_ms(100);   //编码器计数累计时间，时间越大 读取值越大
-		
+		delay_ms(100);
 	}
 }
 
