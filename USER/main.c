@@ -19,15 +19,13 @@ int main(void)
 //------Basic Params------
 	car_sensor_t carSensor;
 	controller_t ctrl;
-	init_ctrl(&ctrl);
 	
 	int motor_flag;
 	char txt[20];
 	int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
 //------Reverse Params--------
-	int reverse_cnt = 0, anti_reverse_cnt = 0;
-	int rotate_cnt = 0, rotate_dir = 0;
-
+	init_ctrl(&ctrl);
+	
 	//-----------------------系统初始化配置----------------------------
 	HAL_Init();			  // 初始化HAL库
 	SystemClock_Config(); // 设置时钟9倍频,72M

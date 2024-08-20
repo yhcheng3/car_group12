@@ -114,8 +114,8 @@ void circle_PWM(controller_t *ctrl, int threshold) {
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void set_control(controller_t *ctrl, car_sensor_t *carSensor, int motor_flag) 
 {
-	read_sensor(carSensor);
 	int E_V, car_V;
+	read_sensor(carSensor);
 	E_V = (carSensor->a * 2 + carSensor->b * 1) - (carSensor->c * 1 + carSensor->d * 2);
 	if (carSensor->a == 1 && carSensor->b == 1 && carSensor->c == 1 && carSensor->d == 1) { //|| 
 			// (carSensor->a == 0 && carSensor->b == 0 && carSensor->c == 0 && carSensor->d == 0))//all black
