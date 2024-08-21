@@ -13,29 +13,44 @@
 
 //----------circle_PWM()--------
 #define CRCL_FACTOR 800
-#define CRCL_TWIST_FACTOR 3600
-#define CRCL_THRESH 1600
+#define CRCL_TWIST_FACTOR 3000
+#define CRCL_THRESH 1200
 #define ROT_THRESH 2 //�����ת�������������
 #define TWIST_DELAY 70
 
 //----------set_PWM()--------
-//#define REV_CNT_THRESH_C 20
-//#define REV_CNT_THRESH 150
-//#define REV_CNT_ADD 2
-//#define ANTI_REV_CNT_THRESH 0
-#define CAR_REV 1200
+#define CAR_REV 1000
 #define CAR_TURN 800
 #define CAR_FWD 1500
 
 #define MAX_VAL 6000
 
+//----------rotate()
+#define FWD_FACTOR 800
+#define ROT_FACTOR 2000
 typedef struct
 {
 	uint8_t a;
 	uint8_t b;
 	uint8_t c;
 	uint8_t d;
-}car_sensor_t;
+}photoele_t;
+
+typedef struct
+{
+	int B;
+	int L;
+	int R;
+
+}encoder_t;
+
+typedef enum {
+    forward, stop, turn_right, turn_big_right, turn_big_left
+} MoveDir;
+
+typedef enum {
+    idle, run, find_R, find_L, delay_R, delay_L, compare_RL
+} CarState;
 
 typedef struct
 {
@@ -43,56 +58,33 @@ typedef struct
 	int16_t L;
 	int16_t R;
 	
-	int rotate_cnt;
-	int rotate_dir; // 0�� 1��
-	int rotate_times;
+	int rotate_cnt; // Cumulative rotation iterations
+	int rotate_dir; // Direction: 0 left, 1 right
+	int rotate_times; // No. of full rotation cycles
 
-	int work_state;
+	int work_state; // State: 0: tracking, 1: obstacle
+	CarState car_state;
 }controller_t;
 
-
-typedef struct 
-{
-	int B;
-	int L;
-	int R;
-
-}MotoPWM_t;
-
-
-typedef struct
-{
-	int B;
-	int L;
-	int R;
-
-}ENC_t;
-
-typedef enum {
-    forward,stop,turn_right,turn_left
-} MoveDir;
-
-typedef enum {
-    idle , run , barrier , find_R , find_L , delay_R, delay_L , compare_RL
-} CarState;
-
-
+// --------Initialise------
 void init_ctrl(controller_t *ctrl);
 
+// --------Tracking--------
 uint8_t invert(uint8_t val);
 
-void read_sensor(car_sensor_t *carSensor);
+void read_sensor(photoele_t *photoele);
 
 void set_PWM(controller_t  *ctrl, int car_V, int E_V);
 
 void circle_PWM(controller_t *ctrl);
 
-void set_control(controller_t *ctrl, car_sensor_t *carSensor, int motor_flag);
+void set_control(controller_t *ctrl, photoele_t *photoele);
 
-void read_ENC_V(ENC_t *enc_v);
+// --------Obstacle--------
+//void read_enc(encoder_t *enc);
 
-void car_move(controller_t *ctrl, MotoPWM_t *motopwm, MoveDir move);
+//void car_move(controller_t *ctrl, MoveDir move);
 
-void ultrasonic_avoid(controller_t *ctrl, CarState car_state, MotoPWM_t *motopwm, int dis, ENC_t *enc_v);
+//void ultrasonic_avoid(controller_t *ctrl, encoder_t *encoder);
 
 #endif
