@@ -18,7 +18,7 @@ int main(void)
 {	
 //------Basic Params------
 	photoele_t photoele; // 光电传感器
-	// encoder_t encoder;
+	encoder_t encoder;
 	controller_t ctrl;   // 控制模块
 	
 	char txt[20];
@@ -39,18 +39,30 @@ int main(void)
 	Encoder_Init_TIM4();
     OLED_Show_LQLogo(); // ��ʾLOGO
 	delay_ms(500);		// ��ʱ�ȴ�
-	OLED_CLS();			// ����
+	OLED_CLS();			// 清屏
+	KEY_Init();			// 初始化按键
 	MotorInit();
 	// OLED_P8x16Str(10, 0,"Motor_Enc Test");       //��ʾ�ַ���
 	
 	//-----------------------------------------------------------------
 	while(1)
 	{
-		//if (ctrl.work_state == 0) set_control(&ctrl, &photoele);
-		// TODO: make set_control return isEnd (e.g., when obstacle detected), to change work_state
-		//else ultrasonic_avoid(&ctrl, &encoder);
-		// TODO: set car_state = run and work_state = 0 when path detected post-obstacle
-		set_control(&ctrl, &photoele);
+		// Change Mode
+		if (Read_key(KEY1)) {
+			ctrl.mode = 0;
+		}
+		if (Read_key(KEY2)) {
+			ctrl.mode = 1;
+		}
+		sprintf(txt, "Mode %d", ctrl.mode);
+		OLED_P8x16Str(6,0,txt);
+		
+		if (ctrl.work_state == 0) {
+			set_control(&ctrl, &photoele);
+		} else {
+			ultrasonic_avoid(&ctrl, &encoder, &photoele);
+		}
+		
 		//ECPULSE1=Read_Encoder(2);
 		//sprintf(txt,"B:%04d ",ECPULSE1);
 		sprintf(txt,"L:%04d ",ctrl.L);
