@@ -15,7 +15,7 @@
 #define CRCL_FACTOR 800
 #define CRCL_TWIST_FACTOR 3600
 #define CRCL_THRESH 1600
-#define ROT_THRESH 2 //×î´óÐý×ª´ÎÊý£¬³¬ÔòºóÍË
+#define ROT_THRESH 2 //ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #define TWIST_DELAY 70
 
 //----------set_PWM()--------
@@ -44,9 +44,38 @@ typedef struct
 	int16_t R;
 	
 	int rotate_cnt;
-	int rotate_dir; // 0ÓÒ 1×ó
+	int rotate_dir; // 0ï¿½ï¿½ 1ï¿½ï¿½
 	int rotate_times;
+
+	int work_state;
 }controller_t;
+
+
+typedef struct 
+{
+	int B;
+	int L;
+	int R;
+
+}MotoPWM_t;
+
+
+typedef struct
+{
+	int B;
+	int L;
+	int R;
+
+}ENC_t;
+
+typedef enum {
+    forward,stop,turn_right,turn_left
+} MoveDir;
+
+typedef enum {
+    idle , run , barrier , find_R , find_L , delay_R, delay_L , compare_RL
+} CarState;
+
 
 void init_ctrl(controller_t *ctrl);
 
@@ -59,5 +88,11 @@ void set_PWM(controller_t  *ctrl, int car_V, int E_V);
 void circle_PWM(controller_t *ctrl);
 
 void set_control(controller_t *ctrl, car_sensor_t *carSensor, int motor_flag);
+
+void read_ENC_V(ENC_t *enc_v);
+
+void car_move(controller_t *ctrl, MotoPWM_t *motopwm, MoveDir move);
+
+void ultrasonic_avoid(controller_t *ctrl, CarState car_state, MotoPWM_t *motopwm, int dis, ENC_t *enc_v);
 
 #endif
