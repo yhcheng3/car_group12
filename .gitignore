@@ -1,3 +1,5 @@
+
+
 # Prerequisites
 *.d
 
@@ -7,8 +9,11 @@
 *.obj
 *.elf
 
+# Code readability files
+*.crf
+
 # Linker output
-*.ilk
+*.lnp
 *.map
 *.exp
 
@@ -29,12 +34,11 @@
 *.dylib
 
 # Executables
-*.exe
+*.axf
 *.out
 *.app
-*.i*86
-*.x86_64
 *.hex
+*.sct
 
 # Debug files
 *.dSYM/
@@ -51,6 +55,4 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Ignore all .vscode folders
-**/.vscode/
 
