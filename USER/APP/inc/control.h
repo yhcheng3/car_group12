@@ -3,7 +3,8 @@
 
 #include "include.h"
 
-#define PERIOD 50
+// TODO: period now defined in stm32f1xx_it.c
+#define PERIOD 50 
 
 //----------set_PWM()--------
 #define E_FACTOR 150         
@@ -85,10 +86,10 @@ void circle_PWM(controller_t *ctrl);
 void set_control(controller_t *ctrl, photoele_t *photoele);
 
 // --------Obstacle--------
-void read_enc(encoder_t *enc);
+void read_enc(void);
 
 void car_move(controller_t *ctrl, MoveDir move);
 
-void ultrasonic_avoid(controller_t *ctrl, encoder_t *encoder, photoele_t *photoele);
+void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele);
 
 #endif

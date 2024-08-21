@@ -1,201 +1,91 @@
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-@ç¼–    å†™ï¼šé¾™é‚±ç§‘æŠ€
-@E-mail  ï¼šchiusir@163.com
-@ç¼–è¯‘IDE ï¼šKEIL5.25.3åŠä»¥ä¸Šç‰ˆæœ¬
-@ä½¿ç”¨å¹³å°ï¼šåŒ—äº¬é¾™é‚±æ™ºèƒ½ç§‘æŠ€å…¨å‘ç¦æ¥è½®å°è½¦
-@æœ€åŽæ›´æ–°ï¼š2022å¹´02æœˆ19æ—¥ï¼ŒæŒç»­æ›´æ–°ï¼Œè¯·å…³æ³¨æœ€æ–°ç‰ˆï¼
-@åŠŸèƒ½ä»‹ç»ï¼š
-@ç›¸å…³ä¿¡æ¯å‚è€ƒä¸‹åˆ—åœ°å€
-@ç½‘    ç«™ï¼šhttp://www.lqist.cn
-@æ·˜å®åº—é“ºï¼šhttp://longqiu.taobao.com
-@è½¯ä»¶ç‰ˆæœ¬ï¼šV1.0 ç‰ˆæƒæ‰€æœ‰ï¼Œå•ä½ä½¿ç”¨è¯·å…ˆè”ç³»æŽˆæƒ
+@±à    Ð´£ºÁúÇñ¿Æ¼¼
+@E-mail  £ºchiusir@163.com
+@±àÒëIDE £ºKEIL5.25.3¼°ÒÔÉÏ°æ±¾
+@Ê¹ÓÃÆ½Ì¨£º±±¾©ÁúÇñÖÇÄÜ¿Æ¼¼È«Ïò¸£À´ÂÖÐ¡³µ
+@×îºó¸üÐÂ£º2022Äê02ÔÂ19ÈÕ£¬³ÖÐø¸üÐÂ£¬Çë¹Ø×¢×îÐÂ°æ£¡
+@¹¦ÄÜ½éÉÜ£º
+@Ïà¹ØÐÅÏ¢²Î¿¼ÏÂÁÐµØÖ·
+@Íø    Õ¾£ºhttp://www.lqist.cn
+@ÌÔ±¦µêÆÌ£ºhttp://longqiu.taobao.com
+@Èí¼þ°æ±¾£ºV1.0 °æÈ¨ËùÓÐ£¬µ¥Î»Ê¹ÓÃÇëÏÈÁªÏµÊÚÈ¨
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 
-// åŒ…å«æ‰€æœ‰å¤´æ–‡ä»¶
+// °üº¬ËùÓÐÍ·ÎÄ¼þ
 #include "include.h"
 
+//-----Global Variables------
+photoele_t photoele; // ¹âµç´«¸ÐÆ÷
+encoder_t enc;
+controller_t ctrl; 
+
+extern u8 ReadBuff[1024];		
+
 int main(void)
-{	
-//------Basic Params------
-	photoele_t photoele; // å…‰ç”µä¼ æ„Ÿå™¨
-	encoder_t encoder;
-	controller_t ctrl;   // æŽ§åˆ¶æ¨¡å—
-	
-	char txt[20];
-	// int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
-//------Reverse Params--------
+{
+	//-----------------------ÏµÍ³³õÊ¼»¯ÅäÖÃ----------------------------
+	HAL_Init();			  // ³õÊ¼»¯HAL¿â
+	SystemClock_Config(); // ÉèÖÃÊ±ÖÓ9±¶Æµ,72M
+	delay_init(72);		  // ³õÊ¼»¯ÑÓÊ±º¯Êý
+	JTAG_Set(SWD_ENABLE); // ´ò¿ªSWD½Ó¿Ú ¿ÉÒÔÀûÓÃÖ÷°åµÄSWD½Ó¿Úµ÷ÊÔ
+	//-----------------------------------------------------------------
+	LED_Init();						//³õÊ¼»¯LED	
+	KEY_Init();						//³õÊ¼»¯°´¼ü
+	OLED_Init();    				//OLED³õÊ¼»¯
+	OLED_CLS();						//ÇåÆÁ
+	uart_init(USART_2,115200);		//³õÊ¼»¯´®¿Ú
+	uart_init(USART_3,115200);		//³õÊ¼»¯´®¿Ú
+	Encoder_Init_TIM2();			//±àÂëÆ÷³õÊ¼»¯
+	Encoder_Init_TIM3();			//±àÂëÆ÷³õÊ¼»¯
+	Encoder_Init_TIM4();			//±àÂëÆ÷³õÊ¼»¯
+	MotorInit();					//µç»ú³õÊ¼»¯
+	Ultrasonic_Init();
+//===============================================================
+	//Car_main();			//³¬Éù²¨±ÜÕÏÕû³µ²Î¿¼³ÌÐò
 	init_ctrl(&ctrl);
 	
-	//-----------------------ç³»ç»Ÿåˆå§‹åŒ–é…ç½®----------------------------
-	HAL_Init();			  // åˆå§‹åŒ–HALåº“
-	SystemClock_Config(); // è®¾ç½®æ—¶é’Ÿ9å€é¢‘,72M
-	delay_init(72);		  // åˆå§‹åŒ–å»¶æ—¶å‡½æ•°
-	JTAG_Set(SWD_ENABLE); // æ‰“å¼€SWDæŽ¥å£ å¯ä»¥åˆ©ç”¨ä¸»æ¿çš„SWDæŽ¥å£è°ƒè¯•
-	//-----------------------------------------------------------------
-	LED_Init();			// LEDåˆå§‹åŒ–
-	OLED_Init();		// OLEDåˆå§‹åŒ–   
-	Encoder_Init_TIM2();   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Ã¶ï¿½Ê±ï¿½ï¿½2,3,4ï¿½ï¿½Ó²ï¿½ï¿½ABï¿½ï¿½ï¿½ï¿½ï¿½È¡
-	Encoder_Init_TIM3();
-	Encoder_Init_TIM4();
-    OLED_Show_LQLogo(); // ï¿½ï¿½Ê¾LOGO
-	delay_ms(500);		// ï¿½ï¿½Ê±ï¿½È´ï¿½
-	OLED_CLS();			// æ¸…å±
-	KEY_Init();			// åˆå§‹åŒ–æŒ‰é”®
-	MotorInit();
-	// OLED_P8x16Str(10, 0,"Motor_Enc Test");       //ï¿½ï¿½Ê¾ï¿½Ö·ï¿½ï¿½ï¿½
-	
-	//-----------------------------------------------------------------
 	while(1)
 	{
-		// Change Mode
-		if (Read_key(KEY1)) {
-			ctrl.mode = 0;
-		}
-		if (Read_key(KEY2)) {
-			ctrl.mode = 1;
-		}
-		sprintf(txt, "Mode %d", ctrl.mode);
-		OLED_P8x16Str(6,0,txt);
-		
-		if (ctrl.work_state == 0) {
-			set_control(&ctrl, &photoele);
-		} else {
-			ultrasonic_avoid(&ctrl, &encoder, &photoele);
-		}
-		
-		//ECPULSE1=Read_Encoder(2);
-		//sprintf(txt,"B:%04d ",ECPULSE1);
-		sprintf(txt,"L:%04d ",ctrl.L);
-	    OLED_P8x16Str(0,0,txt);	
-		
-		//ECPULSE2=Read_Encoder(3);
-		//sprintf(txt,"L:%04d ",ECPULSE2);
-		sprintf(txt,"R:%04d ",ctrl.R);
-	    OLED_P8x16Str(0,2,txt);	
-		
-		//ECPULSE3=Read_Encoder(4);
-		//sprintf(txt,"R:%04d ",ECPULSE3);
-		sprintf(txt,"B:%04d ",ctrl.B);
-	    OLED_P8x16Str(0,4,txt);
-		
-		sprintf(txt, "%d %d %d %d", photoele.a, photoele.b, photoele.c, photoele.d);
-		OLED_P6x8Str(0,6, txt);
-		
-		MotorCtrl3w(ctrl.B, ctrl.L, ctrl.R);
-		delay_ms(PERIOD);
+		OLED_task();
+		// delay_ms(PERIOD);
 	}
 }
 
-//----------PID Testing---------------
-//int main(void)
-// {
-//   int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
-// 	char txt_pulse[30];
+void OLED_task(void) {
+	char txt[20];
+	sprintf(txt,"L:%04d ",ctrl.L);
+	OLED_P8x16Str(0,0,txt);	
+
+	//ECPULSE2=Read_Encoder(3);
+	//sprintf(txt,"L:%04d ",ECPULSE2);
+	sprintf(txt,"R:%04d ",ctrl.R);
+	OLED_P8x16Str(0,2,txt);	
+
+	//ECPULSE3=Read_Encoder(4);
+	//sprintf(txt,"R:%04d ",ECPULSE3);
+	sprintf(txt,"B:%04d ",ctrl.B);
+	OLED_P8x16Str(0,4,txt);
+
+	sprintf(txt, "%d %d %d %d", photoele.a, photoele.b, photoele.c, photoele.d);
+	OLED_P6x8Str(0,6, txt);
 	
-// 	int16_t duty = 1000,flag = 0;
-//   char txt[16];
-	
-// 	int target = 80;
-// 	float output = 0;
-	
-// //----PID----
-// 	pid_param_t pid;
-// 	PidInit(&pid);
-// 	pid.kd = 10;
-// 	pid.ki = 10;
-// 	pid.kp = 10;
-	
-	
-// //-----------------------ÏµÍ³ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½----------------------------
-// 	HAL_Init();			  // ï¿½ï¿½Ê¼ï¿½ï¿½HALï¿½ï¿½
-// 	SystemClock_Config(); // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½9ï¿½ï¿½Æµ,72M
-// 	delay_init(72);		  // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½
-// 	JTAG_Set(SWD_ENABLE); // ï¿½ï¿½SWDï¿½Ó¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½SWDï¿½Ó¿Úµï¿½ï¿½ï¿½
-// //-----------------------------------------------------------------
-// 	LED_Init();			// LEDï¿½ï¿½Ê¼ï¿½ï¿½
-// 	OLED_Init();		// OLEDï¿½ï¿½Ê¼ï¿½ï¿½    
-// 	Encoder_Init_TIM2();   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Ã¶ï¿½Ê±ï¿½ï¿½2,3,4ï¿½ï¿½Ó²ï¿½ï¿½ABï¿½ï¿½ï¿½ï¿½ï¿½È¡
-// 	Encoder_Init_TIM3();
-// 	Encoder_Init_TIM4();
-//     OLED_Show_LQLogo(); // ï¿½ï¿½Ê¾LOGO
-// 	delay_ms(500);		// ï¿½ï¿½Ê±ï¿½È´ï¿½
-// 	OLED_CLS();			// ï¿½ï¿½ï¿½ï¿½
-// 	MotorInit();
-// 	// OLED_P8x16Str(10, 0,"Motor_Enc Test");       //ï¿½ï¿½Ê¾ï¿½Ö·ï¿½ï¿½ï¿½
-// 	while(1)
-// 	{
-// 		ECPULSE1=Read_Encoder(2);
-// 		sprintf(txt_pulse,"E1:%04d ",ECPULSE1);
-// 	    OLED_P8x16Str(0,0,txt_pulse);	
-		
-// 		output = PidLocCtrl(&pid, (ECPULSE1 * 10) - duty);
-// //		ECPULSE2=Read_Encoder(3);
-// //		sprintf(txt_pulse,"E2:%04d ",ECPULSE2);
-// //	    OLED_P8x16Str(0,4,txt_pulse);	
-		
-// //		ECPULSE3=Read_Encoder(4);
-// //		sprintf(txt_pulse,"E3:%04d ",ECPULSE3);
-// //	    OLED_P8x16Str(0,6,txt_pulse);	
-    
-// //		if(Read_key(KEY1) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY0ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼ï¿½Ð¡
-// //    {
-// //      if(duty > -PWM_DUTY_MAX)
-// //        duty += 200;
-// //    }
-// //    if(Read_key(KEY2) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
-// //    {
-// //      if(duty < PWM_DUTY_MAX)   //ï¿½ï¿½Õ¼ï¿½Õ±ï¿½Îª10000ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½7200
-// //        duty = 0;
-// //    }
-// //    if(Read_key(KEY3) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY1ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±ï¿½ï¿½ï¿½Öµ
-// //    {
-// //      duty -= 200;
-// //    }
-		
-//     if(Read_key(KEY1) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
-//     {
-//       pid.kp += 1;
-//     }
-// 		if(Read_key(KEY2) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
-//     {
-//       pid.kp += 1;
-//     }
-// 		if(Read_key(KEY3) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
-//     {
-//       pid.kp += 1;
-//     }
-// 		if(Read_key(KEY3) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
-//     {
-//       pid.kp += 1;
-//     }
-		
-// 		if(Read_key(KEY4) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
-//     {
-//       pid.ki += 1;
-//     }
-		
-// 		if(Read_key(KEY5) == 1)      //ï¿½ï¿½ï¿½ï¿½KEY2ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Õ±È¼Ó´ï¿½
-//     {
-//       pid.kd += 1;
-//     }
-// 		sprintf(txt_pulse,"E2:%04f ",pid.kp);
-// 	    OLED_P8x16Str(0,2,txt_pulse);	
-// 		sprintf(txt_pulse,"E2:%04f ",pid.ki);
-// 	    OLED_P8x16Str(0,4,txt_pulse);	
-// 		sprintf(txt_pulse,"E2:%04f ",pid.kd);
-// 	    OLED_P8x16Str(0,6,txt_pulse);	
-		
-		
-// 		output = constrain_float(output, -2000, 2000);
-		
-// 		MotorCtrl3w(output, 0, 0);
-// 		// MotorCtrl3w(duty, duty, duty);
-//     // sprintf(txt, "PWM: %5d;", duty);
-// 		// OLED_P8x16Str(10,0,txt);
-		
-// 		LED_Ctrl(RVS);       //ï¿½ï¿½Æ½ï¿½ï¿½×ª,LEDï¿½ï¿½Ë¸
-//     delay_ms(200);   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û¼ï¿½Ê±ï¿½ä£¬Ê±ï¿½ï¿½Ô½ï¿½ï¿½ ï¿½ï¿½È¡ÖµÔ½ï¿½ï¿½
-		
-// 	}
-// }
+	sprintf(txt, "Mode %d", ctrl.mode);
+	OLED_P6x8Str(0,7,txt);
+}
+
+void control(void) {
+	if (Read_key(KEY1)) {
+		ctrl.mode = 0;
+	}
+	if (Read_key(KEY2)) {
+		ctrl.mode = 1;
+	}
+
+	if (ctrl.work_state == 0) {
+		set_control(&ctrl, &photoele);
+	} else {
+		ultrasonic_avoid(&ctrl, &photoele);
+	}
+	MotorCtrl3w(ctrl.B, ctrl.L, ctrl.R);
+}
 

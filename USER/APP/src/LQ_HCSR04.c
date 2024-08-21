@@ -39,7 +39,6 @@ void Ultrasonic_Init()
 {
 	//初始化 超声波模块引脚
     GPIO_InitTypeDef GPIO_Initure;
-  
 	__HAL_RCC_GPIOB_CLK_ENABLE();                       //开启GPIOB时钟
 
     GPIO_Initure.Pin=GPIO_PIN_9;  	                    //PB9 // Trig - PB9输出
@@ -54,7 +53,7 @@ void Ultrasonic_Init()
     GPIO_Initure.Speed=GPIO_SPEED_FREQ_HIGH;            //高速
     HAL_GPIO_Init(GPIOB,&GPIO_Initure); 
     HAL_GPIO_WritePin(GPIOB,GPIO_PIN_9,GPIO_PIN_RESET);
-	LQ_TIM2_Init(719,0);                    // 定时器用于计数
+//	LQ_TIM2_Init(71,9);                    // 定时器用于计数
 }
 extern uint32_t TimeCounter;	 //用于超声波计时,该变量位于stm32f1xx_it.c中
 uint32_t HalTime1=0, HalTime2=0;
@@ -88,7 +87,7 @@ uint32_t Get_Distance(void) // 传入时间单位10us
         Distance = (uint32_t)(((float)HalTime2 *17)/100);
 
 	}
-	if( 2.5 < Distance)
+	if( 2 < Distance)
         return Distance;
     else 
         return 1;
@@ -107,7 +106,7 @@ void Test_Ultrasonic()
 		Dis = Get_Distance();
 		sprintf(txt, "Dis=%3d cm", Dis);
 		OLED_P8x16Str(10, 2, txt); // 显示字符串
-		printf("Distance:%dcm\n", Dis);
+	
 		LED_Ctrl(RVS);
 		delay_ms(100);
 	}

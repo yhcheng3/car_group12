@@ -17,19 +17,21 @@
 #include "LQ_Key.h"
 #include "LQ_LED.h"
 #include "LQ_OLED096.h"
-#include "LQ_TIM.h"
 #include "LQ_Motor.h"
 #include "LQ_Encoder.h"
 #include "LQ_ADC.h"
 #include "LQ_IIC_Gyro.h"
 #include "LQ_MPU6050_DMP.h"
-#include "LQ_Photoelectric.h"
-#include "LQ_HCSR04.h"
 //#include "mag.h"
 //#include "color_piece.h"
 #include "ANO_DT.h"
+#include "LQ_TIM.h"
+#include "LQ_HCSR04.h"
 
+#include "LQ_Photoelectric.h"
 #include "control.h"
+#include "main.h"
+
 
 #define OLED 1
  
