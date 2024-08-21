@@ -15,7 +15,7 @@
 #define CRCL_FACTOR 800
 #define CRCL_TWIST_FACTOR 3000
 #define CRCL_THRESH 1200
-#define ROT_THRESH 2 //�����ת�������������
+#define ROT_THRESH 1 //�����ת�������������
 #define TWIST_DELAY 70
 
 //----------set_PWM()--------
@@ -64,6 +64,10 @@ typedef struct
 
 	int work_state; // State: 0: tracking, 1: obstacle
 	CarState car_state;
+	
+	int on_path; // 0: Off path; 1: On path
+	
+	int mode; // 模式 0: 循迹会后退  1: 循迹会跳进避障状态
 }controller_t;
 
 // --------Initialise------
@@ -81,10 +85,10 @@ void circle_PWM(controller_t *ctrl);
 void set_control(controller_t *ctrl, photoele_t *photoele);
 
 // --------Obstacle--------
-//void read_enc(encoder_t *enc);
+void read_enc(encoder_t *enc);
 
-//void car_move(controller_t *ctrl, MoveDir move);
+void car_move(controller_t *ctrl, MoveDir move);
 
-//void ultrasonic_avoid(controller_t *ctrl, encoder_t *encoder);
+void ultrasonic_avoid(controller_t *ctrl, encoder_t *encoder, photoele_t *photoele);
 
 #endif

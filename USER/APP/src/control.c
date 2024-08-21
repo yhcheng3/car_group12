@@ -6,6 +6,8 @@ void init_ctrl(controller_t *ctrl) {
 	ctrl->rotate_times = 0;
 	ctrl->work_state = 0;
 	ctrl->car_state = run;
+	ctrl->on_path = 0;
+	ctrl->mode = 0;
 }
 
 uint8_t invert(uint8_t val) // Use if background is white
@@ -97,23 +99,31 @@ void circle_PWM(controller_t *ctrl) {
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
 @函数名称：void set_control(controller_t *ctrl, photoele_t *photoele, int motor_flag)
-@功能说明：根据光电传感器的值，
+@功能说明：根据光电传感器的值，转圈、后退或循迹
 @参数说明：*photoele: 根据光电传感器的值，算出合理的电机输入，并赋给*ctrl
 @函数返回：无
 @修改时间：2024/08/20
 @调用方法：
-@备    注：
+@备    注：超声波模块检测到障碍物时，切换至避障状态（work_state = 1）
+					 模式0下，旋转ROT_THRESH圈仍未找到路径时，后退
+					 模式1下，旋转ROT_THRESH圈仍未找到路径时，切换至避障状态（work_state = 1）
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void set_control(controller_t *ctrl, photoele_t *photoele) 
 {
-	int E_V, car_V;
+	int E_V, car_V, dis;
 	read_sensor(photoele);
 	
 	E_V = (photoele->a * 2 + photoele->b * 1) - (photoele->c * 1 + photoele->d * 2);
 	
 	if (photoele->a == 1 && photoele->b == 1 && photoele->c == 1 && photoele->d == 1) { //|| 
 	// (photoele->a == 0 && photoele->b == 0 && photoele->c == 0 && photoele->d == 0))//all black
+		ctrl->on_path = 0;
+		
 		// 优先转圈，reverse_cnt增加至一定阈值再后退
+		if ((ctrl->rotate_cnt) != 0) {
+			MotorCtrl3w(0, 0, 0); // 刚跳进旋转状态
+			delay_ms(PERIOD);
+		}
 		if (ctrl->rotate_times < ROT_THRESH){
 			// 转圈
 			circle_PWM(ctrl);
@@ -121,6 +131,13 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 			// 转圈后延时
 			delay_ms(TWIST_DELAY); // Wait for twist to finish
 			(ctrl->rotate_times)++;
+			// 模式1下触发模式转换
+			if (ctrl->mode == 1) {
+				ctrl->work_state = 1;
+				(ctrl->rotate_cnt) = 0;
+				(ctrl->rotate_times) = 0;
+				return; // Possible bug
+			}
 		} else {
 			// 后退
 			car_V = -CAR_REV;
@@ -129,6 +146,7 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 	}
 	else
 	{
+		ctrl->on_path = 1;
 		// 常规循迹
 		// E_V < 0意味轨迹在左边，则轨迹消失时，该优先找左边；rotate_dir0右 1左
 		ctrl->rotate_dir = (E_V < 0);  
@@ -146,129 +164,163 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 	ctrl->L = ((ctrl->L) < (-MAX_VAL) ? (-MAX_VAL) : ((ctrl->L) > (MAX_VAL) ? (MAX_VAL) : (ctrl->L)));
 	ctrl->R = ((ctrl->R) < (-MAX_VAL) ? (-MAX_VAL) : ((ctrl->R) > (MAX_VAL) ? (MAX_VAL) : (ctrl->R)));
 	ctrl->B = ((ctrl->B) < (-MAX_VAL) ? (-MAX_VAL) : ((ctrl->B) > (MAX_VAL) ? (MAX_VAL) : (ctrl->B)));
+
+	// Place after change to on_path
+	// 遇到障碍，触发模式转换
+	dis = Get_Distance();
+	if (dis > 25 || dis == 1) {
+		ctrl->work_state = 1;
+	}
 }
 
 //-------------------Ultrasonic----------------------
-//void read_enc(encoder_t *enc)
-//{
-//		enc->B = Read_Encoder(2);
-//		enc->L = Read_Encoder(4);
-//		enc->R = Read_Encoder(3);
-//}
-//	
-//void car_move(controller_t *ctrl, MoveDir move)//遇到障碍物时的运动方式
-//{
-//	switch(move)
-//	{
-//		// TODO: change to ctrl->L allocation, install of MotorCtrl func call
-//		case forward:
-//			MotorCtrl3w(0, FWD_FACTOR, -FWD_FACTOR);
-//		
-//		case turn_right:
-//			MotorCtrl3w(ROT_FACTOR, ROT_FACTOR, ROT_FACTOR); //around 90 deg
-//			delay_ms(100);
-//		
-//		case turn_big_right:
-//			MotorCtrl3w((2*ROT_FACTOR), (2*ROT_FACTOR), (2*ROT_FACTOR)); //around 90 deg
-//			delay_ms(100);
-//		
-//		case turn_big_left:
-//			MotorCtrl3w(-(2*ROT_FACTOR), -(2*ROT_FACTOR), -(2*ROT_FACTOR)); //around 90 deg
-//			delay_ms(100);
-//		
-//		case stop:
-//			MotorCtrl3w(0, 0, 0);
-//	}
-//}
+void read_enc(encoder_t *enc)
+{
+		enc->B = Read_Encoder(2);
+		enc->L = Read_Encoder(4);
+		enc->R = Read_Encoder(3);
+}
+	
+void car_move(controller_t *ctrl, MoveDir move)//遇到障碍物时的运动方式
+{
+	switch(move)
+	{
+		// TODO: possible bug - delay insufficient after jerk to right
+		case forward:
+			ctrl->B = 0;
+			ctrl->L = FWD_FACTOR;
+		  ctrl->R = -FWD_FACTOR;
+		
+		case turn_right: // 90 deg
+			ctrl->B = ROT_FACTOR;
+			ctrl->L = ROT_FACTOR;
+		  ctrl->R = ROT_FACTOR;
+		
+		case turn_big_right:
+			ctrl->B = 2*ROT_FACTOR;
+			ctrl->L = 2*ROT_FACTOR;
+		  ctrl->R = 2*ROT_FACTOR;
+		
+		case turn_big_left:
+			ctrl->B = -(2*ROT_FACTOR);
+			ctrl->L = -(2*ROT_FACTOR);
+		  ctrl->R = -(2*ROT_FACTOR);
+		
+		case stop:
+			ctrl->B = 0;
+			ctrl->L = 0;
+		  ctrl->R = 0;
+	}
+}
 
-//void ultrasonic_avoid(controller_t *ctrl, encoder_t *encoder){
-//	int dis_R = 0, dis_L = 0;
-//	int read_cnt = 0; // No. of reads to be averaged
-//	
-//	int dis = Get_Distance();
-//	
-//	read_enc(encoder);
-//	switch (ctrl->car_state)
-//	{
-//		case idle: 
-//			// Unused
-//			car_move(ctrl, stop);
-//			break;
-//		
-//		case run:
-//			if (dis > 25 || dis == 1){
-//				car_move(ctrl, forward);
-//			}
-//			else {
-//				car_move(ctrl, stop);
-//				ctrl->car_state = find_R;
-//			}
-//			break;
 
-//		case find_R: // turn right & detect distance
-//			car_move(ctrl, turn_right);
-//			ctrl->car_state = delay_R;
-//			break;
-//		
-//		case delay_R:
-//				if (encoder->L == 0 && encoder->R == 0 && encoder->B == 0)
-//				{
-//					if (read_cnt++ < 5)
-//					{
-//						dis_R += dis;
-//					}
-//					else {
-//						dis_R = dis_R / 5;
-//						read_cnt = 0;
-//						if (dis_R > 60 || dis_R == 1)
-//						{
-//							ctrl->car_state = run;
-//							dis_R = 0;
-//						}
-//						else {
-//						ctrl->car_state = find_L;
-//						}
-//					}
-//				}
-//				break;
-//				
-//		case find_L:
-//			car_move(ctrl, turn_big_left);
-//			ctrl->car_state = delay_L;
-//			break;
-//		
-//		case delay_L:
-//			if (encoder->L == 0 && encoder->R == 0 && encoder->B == 0)
-//				{
-//					if (read_cnt++ < 5)
-//					{
-//						dis_L += dis;
-//					}
-//					else {
-//						dis_L = dis_L / 5;
-//						read_cnt = 0;
-//						if (dis_L > 60 || dis_R == 1)
-//						{
-//							ctrl->car_state = run;
-//							dis_L = 0;
-//						}
-//						else {
-//							ctrl->car_state = compare_RL;
-//						}
-//					}
-//				}
-//			break;
-//		case compare_RL:
-//			if ((dis_L > dis_R || dis_L == 1) && dis_R != 1)
-//			{
-//				ctrl->car_state = run; // Continue left
-//			}
-//			else {
-//				car_move(ctrl, turn_big_right);
-//				ctrl->car_state = run; // Turn right
-//			}
-//			dis_L = 0;
-//			dis_R = 0;
-//		break;
-//	}
-//}
+void ultrasonic_avoid(controller_t *ctrl, encoder_t *encoder, photoele_t *photoele){
+	int dis_R = 0, dis_L = 0;
+	int read_cnt = 0; // No. of reads to be averaged
+	int dis = 0;
+	
+	read_sensor(photoele);
+	
+	if (!(photoele->a == 1 && photoele->b == 1 && 
+				photoele->c == 1 && photoele->d == 1)) 
+	{
+		//重新回到路轨，触发模式转换
+		if (ctrl->on_path == 0) { 
+			// Possible bug for on_path; turn OFF optimisation
+			ctrl->work_state = 0; //循迹模式
+			ctrl->on_path = 1;
+			ctrl->car_state = run;
+			return;		
+		}
+		ctrl->on_path = 1;
+	} else {
+		ctrl->on_path = 0;
+	}
+	
+	dis = Get_Distance();
+	
+	read_enc(encoder);
+	switch (ctrl->car_state)
+	{
+		case idle: 
+			// Unused
+			car_move(ctrl, stop);
+			break;
+		
+		case run:
+			if (dis > 25 || dis == 1){
+				car_move(ctrl, forward);
+			}
+			else {
+				car_move(ctrl, stop);
+				ctrl->car_state = find_R;
+			}
+			break;
+
+		case find_R: // turn right & detect distance
+			car_move(ctrl, turn_right);
+			ctrl->car_state = delay_R;
+			break;
+		
+		case delay_R:
+				if (encoder->L == 0 && encoder->R == 0 && encoder->B == 0)
+				{
+					if (read_cnt++ < 5)
+					{
+						dis_R += dis;
+					}
+					else {
+						dis_R = dis_R / 5;
+						read_cnt = 0;
+						if (dis_R > 60 || dis_R == 1)
+						{
+							ctrl->car_state = run;
+							dis_R = 0;
+						}
+						else {
+						ctrl->car_state = find_L;
+						}
+					}
+				}
+				break;
+				
+		case find_L:
+			car_move(ctrl, turn_big_left);
+			ctrl->car_state = delay_L;
+			break;
+		
+		case delay_L:
+			if (encoder->L == 0 && encoder->R == 0 && encoder->B == 0)
+				{
+					if (read_cnt++ < 5)
+					{
+						dis_L += dis;
+					}
+					else {
+						dis_L = dis_L / 5;
+						read_cnt = 0;
+						if (dis_L > 60 || dis_R == 1)
+						{
+							ctrl->car_state = run;
+							dis_L = 0;
+						}
+						else {
+							ctrl->car_state = compare_RL;
+						}
+					}
+				}
+			break;
+		case compare_RL:
+			if ((dis_L > dis_R || dis_L == 1) && dis_R != 1)
+			{
+				ctrl->car_state = run; // Continue left
+			}
+			else {
+				car_move(ctrl, turn_big_right);
+				ctrl->car_state = run; // Turn right
+			}
+			dis_L = 0;
+			dis_R = 0;
+		break;
+	}
+}
