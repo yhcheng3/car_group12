@@ -22,7 +22,7 @@ int main(void)
 	
 	int motor_flag;
 	char txt[20];
-	int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
+	// int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
 //------Reverse Params--------
 	init_ctrl(&ctrl);
 	
@@ -43,23 +43,27 @@ int main(void)
 	MotorInit();
 	// OLED_P8x16Str(10, 0,"Motor_Enc Test");       //��ʾ�ַ���
 	
+	//-----------------------------------------------------------------
 	while(1)
 	{
 		motor_flag = 1;
 		set_control(&ctrl, &carSensor, motor_flag);
 		
-		ECPULSE1=Read_Encoder(2);
+		//ECPULSE1=Read_Encoder(2);
 		//sprintf(txt,"B:%04d ",ECPULSE1);
 		sprintf(txt,"L:%04d ",ctrl.L);
 	    OLED_P8x16Str(0,0,txt);	
-		ECPULSE2=Read_Encoder(3);
+		
+		//ECPULSE2=Read_Encoder(3);
 		//sprintf(txt,"L:%04d ",ECPULSE2);
 		sprintf(txt,"R:%04d ",ctrl.R);
 	    OLED_P8x16Str(0,2,txt);	
-		ECPULSE3=Read_Encoder(4);
+		
+		//ECPULSE3=Read_Encoder(4);
 		//sprintf(txt,"R:%04d ",ECPULSE3);
 		sprintf(txt,"B:%04d ",ctrl.B);
 	    OLED_P8x16Str(0,4,txt);
+		
 		sprintf(txt, "%d %d %d %d", carSensor.a, carSensor.b, carSensor.c, carSensor.d);
 		OLED_P6x8Str(0,6, txt);
 		
