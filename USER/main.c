@@ -17,10 +17,10 @@ QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 int main(void)
 {	
 //------Basic Params------
-	car_sensor_t carSensor;
-	controller_t ctrl;
+	photoele_t photoele; // 光电传感器
+	// encoder_t encoder;
+	controller_t ctrl;   // 控制模块
 	
-	int motor_flag;
 	char txt[20];
 	// int ECPULSE1 = 0,ECPULSE2 = 0,ECPULSE3 = 0;
 //------Reverse Params--------
@@ -46,9 +46,11 @@ int main(void)
 	//-----------------------------------------------------------------
 	while(1)
 	{
-		motor_flag = 1;
-		set_control(&ctrl, &carSensor, motor_flag);
-		
+		//if (ctrl.work_state == 0) set_control(&ctrl, &photoele);
+		// TODO: make set_control return isEnd (e.g., when obstacle detected), to change work_state
+		//else ultrasonic_avoid(&ctrl, &encoder);
+		// TODO: set car_state = run and work_state = 0 when path detected post-obstacle
+		set_control(&ctrl, &photoele);
 		//ECPULSE1=Read_Encoder(2);
 		//sprintf(txt,"B:%04d ",ECPULSE1);
 		sprintf(txt,"L:%04d ",ctrl.L);
@@ -64,10 +66,9 @@ int main(void)
 		sprintf(txt,"B:%04d ",ctrl.B);
 	    OLED_P8x16Str(0,4,txt);
 		
-		sprintf(txt, "%d %d %d %d", carSensor.a, carSensor.b, carSensor.c, carSensor.d);
+		sprintf(txt, "%d %d %d %d", photoele.a, photoele.b, photoele.c, photoele.d);
 		OLED_P6x8Str(0,6, txt);
 		
-		//MotorCtrl3w(1000, 1000, 1000);
 		MotorCtrl3w(ctrl.B, ctrl.L, ctrl.R);
 		delay_ms(PERIOD);
 	}
