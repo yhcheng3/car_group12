@@ -155,3 +155,123 @@ void set_control(controller_t *ctrl, car_sensor_t *carSensor, int motor_flag)
 
 	}
 }
+
+/////////
+void read_ENC_V(ENC_t *enc_v)
+{
+		enc_v->B = Read_Encoder(2);
+		enc_v->L = Read_Encoder(3);
+		enc_v->R = Read_Encoder(4);
+};
+	
+void car_move(controller_t *ctrl, MotoPWM_t *motopwm, MoveDir move)//遇到障碍物时的运动方式
+{
+	ctrl->work_state=1;
+	switch(move)
+	{
+		case forward:
+			MotorCtrl3w(0, 800, -800);
+		case turn_right:
+			ctrl->rotate_dir=0;
+			circle_PWM(ctrl, 450);//around 90 deg
+		case turn_left:
+			ctrl->rotate_dir=1;
+			circle_PWM(ctrl, 450);//around 90 deg
+		case stop:
+			MotorCtrl3w(0, 0, 0);
+	}
+}
+
+
+void ultrasonic_avoid(controller_t *ctrl, CarState car_state, MotoPWM_t *motopwm, int dis,ENC_t *enc_v){
+	int dis_R=0, dis_L=0;
+	int read_cnt=0;
+	
+	ctrl->work_state=1;
+	ctrl->rotate_cnt=0;
+	
+	read_ENC_V(enc_v);
+	switch (car_state)
+	{
+		case idle: 
+			car_move(ctrl,motopwm, stop);
+			break;
+		case run:
+			if (dis >25||dis==1){
+				car_move(ctrl,motopwm, forward);
+			}
+			else{
+				car_move(ctrl,motopwm, stop);
+				car_state = barrier;
+			}
+			break;
+		case barrier:
+				car_state = find_R;
+			break;
+		case find_R://turn right & detect distance
+			car_move(ctrl,motopwm, turn_right);
+			car_state = delay_R;
+			break;
+		case delay_R:
+				if (enc_v->L == 0 && enc_v->R == 0 && enc_v->B == 0)
+				{
+					if (read_cnt++ < 5)
+					{
+						dis_R += dis;
+					}
+					else{
+						dis_R = dis_R / 5;
+						read_cnt = 0;
+						if (dis_R > 60 || dis_R == 1)
+						{
+							car_state = run;
+							dis_R = 0;
+						}
+						else{
+						car_state = find_L;
+						}
+					}
+				}
+				break;
+		case find_L:
+			car_move(ctrl,motopwm, turn_left);
+			car_state = delay_L;
+			break;
+		case delay_L:
+			if (enc_v->L == 0 && enc_v->R == 0 && enc_v->B == 0)
+				{
+					if (read_cnt++ < 5)
+					{
+						dis_L += dis;
+					}
+					else{
+						dis_L = dis_L / 5;
+						read_cnt = 0;
+						if (dis_L > 60 || dis_R == 1)
+						{
+							car_state = run;
+							dis_L = 0;
+						}
+						else{
+						car_state = compare_RL;
+						}
+					}
+				}
+			break;
+		case compare_RL:
+			if ((dis_L > dis_R || dis_L == 1) && dis_R != 1)
+				{
+					car_state = run;// run stright in left direction
+					dis_L = 0;
+					dis_R = 0;
+				}
+			else{
+				car_move(ctrl,motopwm, turn_right);
+				delay_ms(PERIOD);
+				car_move(ctrl,motopwm, turn_right);//turn 180 deg into right direction
+				delay_ms(PERIOD);
+				car_state = run;
+			}
+		break;
+	}
+}
