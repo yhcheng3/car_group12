@@ -32,8 +32,8 @@ QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/float cons
 // pid参数初始化函数
 void PidInit(pid_param_t * pid)
 {
-  pid->kp        = 0;
-  pid->ki        = 0;
+  pid->kp        = 14.3;
+  pid->ki        = 10.6;
   pid->kd        = 0;
   pid->imax      = 0;
   pid->out_p     = 0;

@@ -23,8 +23,7 @@
 #include "main.h"
 #include "stm32f1xx_it.h"
 #include "LQ_TIM.h"
-
-extern TIM_HandleTypeDef TIM1_Handler;
+   
 /** @addtogroup STM32F1xx_HAL_Examples
   * @{
   */
@@ -138,36 +137,34 @@ void PendSV_Handler(void)
   * @param  None
   * @retval None
   */
+static int i;
+uint16_t Sys_Flag  = 0;
 void SysTick_Handler(void)
 {
-  HAL_IncTick();
+	HAL_IncTick();
+	if(++ Sys_Flag > 50)
+    {
+		Sys_Flag = 0;
+		control();
+		
+	}
+	
+	if(++i == 100)
+	{
+		i = 0;
+		read_enc();
+	}
 }
 
-/******************************************************************************/
-/*                 STM32F1xx Peripherals Interrupt Handlers                   */
-/*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
-/*  available peripheral interrupt handler's name please refer to the startup */
-/*  file (startup_stm32f1xx.s).                                               */
-/******************************************************************************/
 
-/**
-  * @brief  This function handles PPP interrupt request.
-  * @param  None
-  * @retval None
-  */
-/*void PPP_IRQHandler(void)
-{
-}*/
-
-
-/**
-  * @}
-  */ 
 extern TIM_HandleTypeDef 	TIM1_Handler;
-//PWM TIM1 更新中断，服务函数
+uint32_t TimeCounter;	 //用于超声波计时
 void TIM1_UP_IRQHandler(void)
 {
-  HAL_TIM_IRQHandler(&TIM1_Handler);
+  
+	HAL_TIM_IRQHandler(&TIM1_Handler);
+	
+	TimeCounter += 10;
 }
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
 @函数名称：void TIM4_IRQHandler(void)
@@ -205,6 +202,8 @@ void TIM3_IRQHandler(void)
 	}				   
 	TIM3->SR&=~(1<<0);//清除中断标志位 	    
 }
+
+
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
 @函数名称：void TIM2_IRQHandler(void)
 @功能说明：定时器中断服务函数
@@ -215,18 +214,61 @@ void TIM3_IRQHandler(void)
 @备    注：无
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void TIM2_IRQHandler(void)
-{ 		    		  			    
-	if(TIM2->SR&0X0001)//溢出中断
-	{    				   				     	    	
-	}				   
-	TIM2->SR&=~(1<<0);//清除中断标志位 	    
+{ 		    		 
+    HAL_TIM_IRQHandler(&TIM2_Handler);    
+//	if(TIM2->SR&0X0001)//溢出中断
+//	{    				   				     	    	
+//	}				   
+//	TIM2->SR&=~(1<<0);//清除中断标志位 	    
 }
 
-void TIM1_IRQHandler(void)
-{ 	
-    HAL_TIM_IRQHandler(&TIM1_Handler);   
-  
+// 定时器 中断服务回调函数
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if(htim==(&TIM1_Handler))
+    {
+		
+//       LED_Ctrl(RVS);   //用户任务
+    }
+    if(htim==(&TIM2_Handler))
+    {
+//        TimeCounter++;   // 超声波 计时 任务
+//		LED_Ctrl(RVS);   //用户任务
+    }
+    if(htim==(&TIM3_Handler))
+    {
+//       LED_Ctrl(RVS);   //用户任务
+    }
+    if(htim==(&TIM4_Handler))
+    {
+//       LED_Ctrl(RVS);   //用户任务
+    }
 }
+
+
+
+
+/******************************************************************************/
+/*                 STM32F1xx Peripherals Interrupt Handlers                   */
+/*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
+/*  available peripheral interrupt handler's name please refer to the startup */
+/*  file (startup_stm32f1xx.s).                                               */
+/******************************************************************************/
+
+/**
+  * @brief  This function handles PPP interrupt request.
+  * @param  None
+  * @retval None
+  */
+/*void PPP_IRQHandler(void)
+{
+}*/
+
+
+/**
+  * @}
+  */ 
+
 /**
   * @}
   */

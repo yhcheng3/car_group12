@@ -12,37 +12,39 @@ QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 //int32_t NowTime = 0;
 //uint16_t BatVolt = 0;           // 电池电压采集
 
-TIM_HandleTypeDef 	TIM1_Handler;
-TIM_OC_InitTypeDef  TIM1_CH1Handler;    		//定时器1通道1句柄
-    
+
 //#define MOTOR_FREQUENCY    PWM_DUTY_MAX
 
 //#define USE7843or7971   //USEDRV8701 使用龙邱不同的驱动模块，选择对应的宏定义
 #define USEDRV8701
 
+TIM_HandleTypeDef 	TIM1_Handler;
+TIM_OC_InitTypeDef  TIM1_CH1Handler;    		//定时器1通道1句柄
+TIM_IC_InitTypeDef  TIM1_CH4Handler;
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
 @函数名称：void TIM1_PWM_Init(u16 arr,u16 psc)
 @功能说明：PWM初始化
 @参数说明：arr：重装载值，psc：预分频值
 @函数返回：无
 @修改时间：2022/03/15
-@调用方法：	TIM1_PWM_Init(7199, 0);
+@调用方法：	TIM1_PWM_Init(7199, 0);  10K Hz
 @备    注：
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void TIM1_PWM_Init(u16 arr,u16 psc)
 {
-    
-	TIM1_Handler.Instance=TIM1;             		//定时器1
-	TIM1_Handler.Init.Prescaler=psc;           	    //定时器分频
-	TIM1_Handler.Init.CounterMode=TIM_COUNTERMODE_UP;//向上计数模式
-	TIM1_Handler.Init.Period=arr;              	    //自动重装载值
+	TIM1_Handler.Instance=TIM1;             				 //定时器1
+	TIM1_Handler.Init.Prescaler=psc;           	             //定时器分频
+	TIM1_Handler.Init.CounterMode=TIM_COUNTERMODE_UP;        //向上计数模式
+	TIM1_Handler.Init.Period=arr;              	             //自动重装载值
 	TIM1_Handler.Init.ClockDivision=TIM_CLOCKDIVISION_DIV1;
-	HAL_TIM_PWM_Init(&TIM1_Handler);           	    //初始化PWM
-	HAL_TIM_Base_Start_IT(&TIM1_Handler);           //使能定时器1和定时器1更新中断：TIM_IT_UPDATE  
+	HAL_TIM_Base_Init(&TIM1_Handler);
+ 
+	HAL_TIM_PWM_Init(&TIM1_Handler);           	             //初始化PWM
+	HAL_TIM_Base_Start_IT(&TIM1_Handler);                    //使能定时器3和定时器3更新中断：TIM_IT_UPDATE  
 
-	TIM1_CH1Handler.OCMode=TIM_OCMODE_PWM1; 		//模式选择PWM1
-	TIM1_CH1Handler.Pulse=	0;            			//设置比较值,此值用来确定占空比，默认比较值为自动重装载值的一半,即占空比为50%
-	TIM1_CH1Handler.OCPolarity=TIM_OCPOLARITY_HIGH; //输出比较极性为高  
+	TIM1_CH1Handler.OCMode=TIM_OCMODE_PWM1; 			     //模式选择PWM1
+	TIM1_CH1Handler.Pulse=	0;            			         //设置比较值,此值用来确定占空比，默认比较值为自动重装载值的一半,即占空比为50%
+	TIM1_CH1Handler.OCPolarity=TIM_OCPOLARITY_HIGH;          //输出比较极性为高  
 
 	HAL_TIM_PWM_ConfigChannel(&TIM1_Handler,&TIM1_CH1Handler,TIM_CHANNEL_1);//配置TIM1通道1    
 	HAL_TIM_PWM_ConfigChannel(&TIM1_Handler,&TIM1_CH1Handler,TIM_CHANNEL_2);//配置TIM1通道2   
@@ -51,8 +53,21 @@ void TIM1_PWM_Init(u16 arr,u16 psc)
 	HAL_TIM_PWM_Start(&TIM1_Handler,TIM_CHANNEL_1);//开启PWM通道1
 	HAL_TIM_PWM_Start(&TIM1_Handler,TIM_CHANNEL_2);//开启PWM通道2
 	HAL_TIM_PWM_Start(&TIM1_Handler,TIM_CHANNEL_3);//开启PWM通道3
-
-    HAL_TIM_PWM_Start_IT(&TIM1_Handler, TIM_CHANNEL_1);  //启动主定时器PWM输出
+	
+	TIM1_CH4Handler.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+	TIM1_CH4Handler.ICSelection = TIM_ICSELECTION_DIRECTTI;
+	TIM1_CH4Handler.ICPrescaler = TIM_ICPSC_DIV1;
+	TIM1_CH4Handler.ICFilter = 0;
+	HAL_TIM_IC_ConfigChannel(&TIM1_Handler, &TIM1_CH4Handler, TIM_CHANNEL_4);
+}
+void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
+{
+  if(htim_base->Instance==TIM1)
+  {
+    __HAL_RCC_TIM1_CLK_ENABLE();
+    HAL_NVIC_SetPriority(TIM1_UP_IRQn, 1, 0);
+    HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
+  }
 }
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
@@ -420,6 +435,8 @@ void TestServo (void)
     delay_ms(200);              //延时等待
   }
 }
+
+
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
 @函数名称：void Test_Brushless_Motor(void)

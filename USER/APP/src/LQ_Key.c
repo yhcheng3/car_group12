@@ -26,7 +26,7 @@ void KEY_Init(void)
     GPIO_InitTypeDef GPIO_Initure;
     
     __HAL_RCC_GPIOA_CLK_ENABLE();                       //开启GPIOA时钟
-	__HAL_RCC_GPIOB_CLK_ENABLE();                        //开启GPIOB时钟
+		__HAL_RCC_GPIOB_CLK_ENABLE();                   //开启GPIOB时钟
 
     GPIO_Initure.Pin=GPIO_PIN_11 | GPIO_PIN_12;  	    //PA11  12
     GPIO_Initure.Mode=GPIO_MODE_INPUT;      			//输入
@@ -34,7 +34,7 @@ void KEY_Init(void)
     GPIO_Initure.Speed=GPIO_SPEED_FREQ_HIGH;			//高速
     HAL_GPIO_Init(GPIOA,&GPIO_Initure);    
 	
-	GPIO_Initure.Pin=GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2;  //PB0  1  2
+		GPIO_Initure.Pin=GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2;  //PB0  1  2
     GPIO_Initure.Mode=GPIO_MODE_INPUT;      			//输入
     GPIO_Initure.Pull=GPIO_PULLDOWN;        			//下拉
     GPIO_Initure.Speed=GPIO_SPEED_FREQ_HIGH;            //高速

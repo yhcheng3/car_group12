@@ -325,7 +325,7 @@
             <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
-            <uC99>0</uC99>
+            <uC99>1</uC99>
             <uGnu>0</uGnu>
             <useXO>0</useXO>
             <v6Lang>1</v6Lang>
@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CMSIS;..\CMSIS\CORE;..\CMSIS\HAL_Driver\Inc;..\CMSIS\HAL_Driver\Inc\Legacy;..\MDK;..\USER\APP\inc;..\USER\DebugConfig;..\USER</IncludePath>
+              <IncludePath>..\CMSIS;..\CMSIS\CORE;..\CMSIS\HAL_Driver\Inc;..\CMSIS\HAL_Driver\Inc\Legacy;..\MDK;..\USER\APP\inc;..\USER\DebugConfig;..\USER;..\Control</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -484,9 +484,19 @@
               <FilePath>..\USER\APP\src\LQ_Motor.c</FilePath>
             </File>
             <File>
+              <FileName>LQ_HCSR04.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\USER\APP\src\LQ_HCSR04.c</FilePath>
+            </File>
+            <File>
               <FileName>LQ_TIM.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\USER\APP\src\LQ_TIM.c</FilePath>
+            </File>
+            <File>
+              <FileName>control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\USER\APP\src\control.c</FilePath>
             </File>
             <File>
               <FileName>LQ_Photoelectric.c</FileName>
@@ -859,6 +869,9 @@
               <FilePath>..\readme.txt</FilePath>
             </File>
           </Files>
+        </Group>
+        <Group>
+          <GroupName>Control</GroupName>
         </Group>
       </Groups>
     </Target>

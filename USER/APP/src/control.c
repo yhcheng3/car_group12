@@ -1,5 +1,7 @@
 #include "include.h"
 
+extern encoder_t enc;
+
 void init_ctrl(controller_t *ctrl) {
 	ctrl->rotate_cnt = 0;
 	ctrl->rotate_dir = 0;
@@ -17,6 +19,8 @@ uint8_t invert(uint8_t val) // Use if background is white
 	return val;
 }
 
+// TODO: move photoele calls to TIM Handler;
+// 			 make photoele global variable in main, copy encoder
 void read_sensor(photoele_t *photoele) 
 {
     photoele->a = invert(Read_sensor(sensor1));
@@ -174,11 +178,11 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 }
 
 //-------------------Ultrasonic----------------------
-void read_enc(encoder_t *enc)
+void read_enc(void)
 {
-		enc->B = Read_Encoder(2);
-		enc->L = Read_Encoder(4);
-		enc->R = Read_Encoder(3);
+		enc.B = Read_Encoder(2);
+		enc.L = Read_Encoder(4);
+		enc.R = Read_Encoder(3);
 }
 	
 void car_move(controller_t *ctrl, MoveDir move)//遇到障碍物时的运动方式
@@ -214,10 +218,11 @@ void car_move(controller_t *ctrl, MoveDir move)//遇到障碍物时的运动方式
 }
 
 
-void ultrasonic_avoid(controller_t *ctrl, encoder_t *encoder, photoele_t *photoele){
+void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
+	// Not global variables, we want speed not space.
 	int dis_R = 0, dis_L = 0;
 	int read_cnt = 0; // No. of reads to be averaged
-	int dis = 0;
+	int dis = 0; 
 	
 	read_sensor(photoele);
 	
@@ -239,7 +244,6 @@ void ultrasonic_avoid(controller_t *ctrl, encoder_t *encoder, photoele_t *photoe
 	
 	dis = Get_Distance();
 	
-	read_enc(encoder);
 	switch (ctrl->car_state)
 	{
 		case idle: 
@@ -263,7 +267,7 @@ void ultrasonic_avoid(controller_t *ctrl, encoder_t *encoder, photoele_t *photoe
 			break;
 		
 		case delay_R:
-				if (encoder->L == 0 && encoder->R == 0 && encoder->B == 0)
+				if (enc.L == 0 && enc.R == 0 && enc.B == 0)
 				{
 					if (read_cnt++ < 5)
 					{
@@ -290,7 +294,7 @@ void ultrasonic_avoid(controller_t *ctrl, encoder_t *encoder, photoele_t *photoe
 			break;
 		
 		case delay_L:
-			if (encoder->L == 0 && encoder->R == 0 && encoder->B == 0)
+			if (enc.L == 0 && enc.R == 0 && enc.B == 0)
 				{
 					if (read_cnt++ < 5)
 					{

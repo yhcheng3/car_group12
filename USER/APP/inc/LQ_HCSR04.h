@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 extern uint32_t TimeCounter;
+extern uint32_t HalTime1, HalTime2;
 
 void Ultrasonic_Init(void);
 void LQ_TIM2_Init(uint16_t arr,uint16_t psc);

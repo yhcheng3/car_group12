@@ -15,6 +15,9 @@ extern UART_HandleTypeDef UART3_Handler; 	//UART句柄
 #define RXBUFFERSIZE   1 					//缓存大小
 extern u8 aRxBuffer[RXBUFFERSIZE];			//HAL库USART接收Buffer
 
+extern u8 receive_oneline2;		//串口2接收标志
+extern u8 receive_oneline3;    //串口3接收标志
+
 typedef enum		// 枚举串口号
 {
   USART_2 = 2,
