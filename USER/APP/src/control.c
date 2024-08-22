@@ -205,8 +205,11 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 
 	// Change on_path before switching modes
 	// 遇到障碍，触发模式转换
-	dis = Get_Distance();
-	if (dis < SWITCH_THRESH && dis != 1) {
+	//dis = Get_Distance();
+	dis = Get_Distance_Filtered();
+
+	//if (dis < SWITCH_THRESH && dis != 1) {
+	if (dis < SWITCH_THRESH ) {
 		ctrl->work_state = 1;
 	}
 }
@@ -386,4 +389,62 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 			}
 			break;
 	}
+}
+
+
+/*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+@函数名称：int Get_Distance_Filtered(void)
+@功能说明：对超声波传感器测距进行去噪
+@参数说明：
+@函数返回：int distance_filtered 去噪后的距离值
+@修改时间：2024/08/22
+@调用方法：
+@备    注：
+QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
+
+int Get_Distance_Filtered(void){
+	int dis = 0, dis_temp = 0, dis_sum = 0;
+	int dis_filtered = 0;
+	int distance[5]={0};
+	for (int i = 0; i < 5; i++){
+		dis = Get_Distance();
+		distance[i] = dis;
+	}
+	
+	//排序
+	for (int i = 0; i < 5; i++){
+		for (int j = 0; j < 5-i; j++){
+			if (distance[j] > distance[j+1]){
+				dis_temp = distance[j];
+				distance[j] = distance[j+1];
+				distance[j+1] = dis_temp;
+			}
+		}
+	}
+
+	//找到两个数最大的差
+	int error_max = distance[1] - distance[0];
+	int error_max_index = 0;
+	for (int i = 1; i < 4; i++){
+		if (distance[i+1]-distance[i] > error_max){
+			error_max = distance[i+1]-distance[i];
+			error_max_index = i;
+		}
+	}
+
+	if (error_max_index + 1 > 2){//优先取前部分的数
+		for (int i = 0; i < error_max_index; i++){
+			dis_sum += distance[i];
+		}
+		dis_filtered = dis_sum / (error_max_index +1);
+	}
+	else{//后部分
+		for (int i = 4; i > error_max_index; i--){
+			dis_sum += distance[i];
+		}
+		dis_filtered = dis_sum / (4 - error_max_index);
+	}
+
+	return dis_filtered;
+
 }
