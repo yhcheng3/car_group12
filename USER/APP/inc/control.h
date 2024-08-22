@@ -14,8 +14,8 @@
 
 //----------circle_PWM()--------
 #define CRCL_FACTOR 800
-#define CRCL_TWIST_FACTOR 3000
-#define CRCL_THRESH 1200
+#define CRCL_TWIST_FACTOR 2800
+#define CRCL_THRESH 1000
 #define ROT_THRESH 1 //�����ת�������������
 #define TWIST_DELAY 70
 
@@ -27,8 +27,16 @@
 #define MAX_VAL 6000
 
 //----------rotate()
-#define FWD_FACTOR 800
-#define ROT_FACTOR 2000
+#define FWD_FACTOR 1000
+#define ROT_FACTOR 2500
+
+//----------ultrasonic_avoid()
+#define SWITCH_THRESH 20
+#define AVOID_THRESH 30
+
+//----------Multiply R motor by:-------
+#define RIGHT_FACTOR 1.2
+
 typedef struct
 {
 	uint8_t a;
@@ -46,11 +54,11 @@ typedef struct
 }encoder_t;
 
 typedef enum {
-    forward, stop, turn_right, turn_big_right, turn_big_left
+    forward, turn_right, turn_big_right, turn_big_left, stop
 } MoveDir;
 
 typedef enum {
-    idle, run, find_R, find_L, delay_R, delay_L, compare_RL
+    run, find_R, delay_R, find_L, delay_L, compare_RL
 } CarState;
 
 typedef struct
@@ -73,6 +81,10 @@ typedef struct
 
 // --------Initialise------
 void init_ctrl(controller_t *ctrl);
+
+void init_photoele(photoele_t *photoele);
+	
+void init_enc(encoder_t *enc);
 
 // --------Tracking--------
 uint8_t invert(uint8_t val);

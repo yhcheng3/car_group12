@@ -195,11 +195,12 @@ void Brushless_Motor_Init(u16 freq)
 @调用方法：MotorCtrl3w(pid1.out, pid2.out, pid3.out);
 @备    注：
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
-void MotorCtrl3w(int16_t motor1, int16_t motor2, int16_t motor3)
+void MotorCtrl3w(int16_t motor1, int16_t motor2, int16_t motor3_t)
 {  
 //		设置TIM1通道1的占空比
 //		compare:比较值
 //    TIM1->CCR1=compare; 
+	int16_t motor3 = RIGHT_FACTOR * motor3_t;
   if (motor1 > 0)
   {
     TIM1->CCR1=motor1;	    //C6

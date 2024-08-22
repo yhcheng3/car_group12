@@ -18,7 +18,9 @@ QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 photoele_t photoele; // 光电传感器
 encoder_t enc;
 controller_t ctrl; 
+// int dis = 0; TODO: change to global variable? Timing clashes with ultrasonic_avoid()?
 
+int init_flag = 0;
 extern u8 ReadBuff[1024];		
 
 int main(void)
@@ -32,6 +34,8 @@ int main(void)
 	LED_Init();						//初始化LED	
 	KEY_Init();						//初始化按键
 	OLED_Init();    				//OLED初始化
+	OLED_Show_LQLogo(); // 显示LOGO
+	delay_ms(500);		// 延时等待
 	OLED_CLS();						//清屏
 	uart_init(USART_2,115200);		//初始化串口
 	uart_init(USART_3,115200);		//初始化串口
@@ -43,6 +47,9 @@ int main(void)
 //===============================================================
 	//Car_main();			//超声波避障整车参考程序
 	init_ctrl(&ctrl);
+	init_photoele(&photoele);
+	init_enc(&enc);
+	init_flag = 1; // 初始化后才允许stm32f1xx_it.c调用read_enc(), control()
 	
 	while(1)
 	{
@@ -52,24 +59,29 @@ int main(void)
 }
 
 void OLED_task(void) {
-	char txt[20];
-	sprintf(txt,"L:%04d ",ctrl.L);
-	OLED_P8x16Str(0,0,txt);	
+	char txt[40];
+	sprintf(txt, "MtrL: %+04d   Path: %d", ctrl.L, ctrl.on_path);
+	OLED_P6x8Str(0,0,txt);	
 
-	//ECPULSE2=Read_Encoder(3);
-	//sprintf(txt,"L:%04d ",ECPULSE2);
-	sprintf(txt,"R:%04d ",ctrl.R);
-	OLED_P8x16Str(0,2,txt);	
+	sprintf(txt, "MtrR: %+04d ",ctrl.R);
+	OLED_P6x8Str(0,1,txt);	
 
-	//ECPULSE3=Read_Encoder(4);
-	//sprintf(txt,"R:%04d ",ECPULSE3);
-	sprintf(txt,"B:%04d ",ctrl.B);
-	OLED_P8x16Str(0,4,txt);
+	sprintf(txt, "MtrB: %+04d ",ctrl.B);
+	OLED_P6x8Str(0,2,txt);
+	
+	sprintf(txt, "EncL: %+04d", enc.L);
+	OLED_P6x8Str(0,3, txt);
+	
+	sprintf(txt, "EncR: %+04d", enc.R);
+	OLED_P6x8Str(0,4, txt);
+	
+	sprintf(txt, "EncB: %+04d", enc.B);
+	OLED_P6x8Str(0,5, txt);
 
-	sprintf(txt, "%d %d %d %d", photoele.a, photoele.b, photoele.c, photoele.d);
+	sprintf(txt, "Pht: %d %d %d %d Dis %04d", photoele.a, photoele.b, photoele.c, photoele.d, Get_Distance());
 	OLED_P6x8Str(0,6, txt);
 	
-	sprintf(txt, "Mode %d", ctrl.mode);
+	sprintf(txt, "Mde %d WkSt %d CrSt %d", ctrl.mode, ctrl.work_state, ctrl.car_state);
 	OLED_P6x8Str(0,7,txt);
 }
 
