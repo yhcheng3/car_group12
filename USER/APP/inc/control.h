@@ -37,6 +37,10 @@
 //----------Multiply R motor by:-------
 #define RIGHT_FACTOR 1.2
 
+//----------get_distance_filtered()
+#define DIS_SAMPLES 5
+#define DIS_MAX_ERR 5
+
 typedef struct
 {
 	uint8_t a;
