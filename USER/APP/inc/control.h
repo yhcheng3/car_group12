@@ -104,4 +104,6 @@ void car_move(controller_t *ctrl, MoveDir move);
 
 void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele);
 
+int Get_Distance_Filtered(void);
+
 #endif
