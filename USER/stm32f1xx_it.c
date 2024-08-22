@@ -23,6 +23,8 @@
 #include "main.h"
 #include "stm32f1xx_it.h"
 #include "LQ_TIM.h"
+
+extern int init_flag;
    
 /** @addtogroup STM32F1xx_HAL_Examples
   * @{
@@ -142,17 +144,17 @@ uint16_t Sys_Flag  = 0;
 void SysTick_Handler(void)
 {
 	HAL_IncTick();
-	if(++ Sys_Flag > 50)
+	if(++ Sys_Flag > PERIOD)
     {
 		Sys_Flag = 0;
-		control();
+		if (init_flag == 1) control();
 		
 	}
 	
 	if(++i == 100)
 	{
 		i = 0;
-		read_enc();
+		if (init_flag == 1) read_enc();
 	}
 }
 
