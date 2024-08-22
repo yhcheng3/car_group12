@@ -206,10 +206,9 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 	// Change on_path before switching modes
 	// 遇到障碍，触发模式转换
 	//dis = Get_Distance();
-	dis = Get_Distance_Filtered();
+	dis = get_distance_filtered();
 
-	//if (dis < SWITCH_THRESH && dis != 1) {
-	if (dis < SWITCH_THRESH ) {
+	if (dis < SWITCH_THRESH && dis != 1) {
 		ctrl->work_state = 1;
 	}
 }
@@ -331,20 +330,12 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 			car_move(ctrl, stop);	
 			if (enc.L == 0 && enc.R == 0 && enc.B == 0)
 			{
-				if (read_cnt++ < 5)
-				{
-					dis_R += dis;
+				dis_R = get_distance_filtered();
+				if (dis_R > 60 || dis_R == 1){
+					ctrl->car_state = run;
 				}
 				else {
-					dis_R = dis_R / 5;
-					read_cnt = 0;
-					if (dis_R > 60 || dis_R == 1)
-					{
-						ctrl->car_state = run;
-					}
-					else {
-						ctrl->car_state = find_L;
-					}
+					ctrl->car_state = find_L;
 				}
 			}
 			break;
@@ -356,25 +347,15 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 		
 		case delay_L:
 			car_move(ctrl, stop);
-			if (enc.L == 0 && enc.R == 0 && enc.B == 0)
-				{
-					if (read_cnt++ < 5)
-					{
-						dis_L += dis;
-					}
-					else {
-						read_cnt = 0;
-						dis_L = dis_L / 5;
-						
-						if (dis_L > 60 || dis_R == 1)
-						{
-							ctrl->car_state = run;
-						}
-						else {
-							ctrl->car_state = compare_RL;
-						}
-					}
+			if (enc.L == 0 && enc.R == 0 && enc.B == 0){
+				dis_L = get_distance_filtered();
+				if (dis_L > 60 || dis_L == 1){
+					ctrl->car_state = run;
 				}
+				else {
+					ctrl->car_state = compare_RL;
+				}
+			}
 			break;
 				
 		case compare_RL:
@@ -393,7 +374,7 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-@函数名称：int Get_Distance_Filtered(void)
+@函数名称：int get_distance_filtered(void)
 @功能说明：对超声波传感器测距进行去噪
 @参数说明：
 @函数返回：int distance_filtered 去噪后的距离值
@@ -402,13 +383,14 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 @备    注：
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 
-int Get_Distance_Filtered(void){
+int get_distance_filtered(void){
 	int dis = 0, dis_temp = 0, dis_sum = 0;
 	int dis_filtered = 0;
 	int distance[5]={0};
 	for (int i = 0; i < 5; i++){
 		dis = Get_Distance();
 		distance[i] = dis;
+		delay_ms(20);
 	}
 	
 	//排序
