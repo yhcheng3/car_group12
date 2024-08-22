@@ -6,6 +6,7 @@ extern encoder_t enc;
 int dis_R = 0, dis_L = 0;
 int read_cnt = 0; // No. of reads to be averaged
 
+//------------初始化--------------
 void init_ctrl(controller_t *ctrl) {
 	ctrl->B = 0;
 	ctrl->L = 0;
@@ -35,6 +36,8 @@ void init_enc(encoder_t *enc) {
 	enc->R = 0;
 }
 
+
+//------------循迹--------------
 uint8_t invert(uint8_t val) // Use if background is white
 {
 	if (val == 0) val = 1;
@@ -205,15 +208,13 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 
 	// Change on_path before switching modes
 	// 遇到障碍，触发模式转换
-	//dis = Get_Distance();
 	dis = get_distance_filtered();
-
 	if (dis < SWITCH_THRESH && dis != 1) {
 		ctrl->work_state = 1;
 	}
 }
 
-//-------------------Ultrasonic----------------------
+//------------避障--------------
 void read_enc(void)
 {
 		enc.B = Read_Encoder(2);
@@ -225,7 +226,6 @@ void car_move(controller_t *ctrl, MoveDir move)//遇到障碍物时的运动方式
 {
 	switch(move)
 	{
-		// TODO: possible bug - delay insufficient after jerk to right
 		case forward:
 			ctrl->B = 0;
 			ctrl->L = FWD_FACTOR;
@@ -272,14 +272,12 @@ void car_move(controller_t *ctrl, MoveDir move)//遇到障碍物时的运动方式
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
 @函数名称：void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele)
-@功能说明：根据超声波
+@功能说明：根据超声波和小车状态进行避障
 @参数说明：*photoele: 根据光电传感器的值，算出合理的电机输入，并赋给*ctrl
 @函数返回：无
-@修改时间：2024/08/20
+@修改时间：2024/08/22
 @调用方法：
-@备    注：超声波模块检测到障碍物时，切换至避障状态（work_state = 1）
-					 模式0下，旋转ROT_THRESH圈仍未找到路径时，后退
-					 模式1下，旋转ROT_THRESH圈仍未找到路径时，切换至避障状态（work_state = 1）
+@备    注：根据on_path判断是否从非路轨返回路轨。如是，触发状态转换。
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 	int dis = 0; 
@@ -292,7 +290,7 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 	if (!(photoele->a == 1 && photoele->b == 1 && 
 				photoele->c == 1 && photoele->d == 1)) 
 	{
-		//从非路轨返回路轨，触发状态转换
+		// 从非路轨返回路轨，触发状态转换
 		if (ctrl->on_path == 0) { 
 			// Possible bug for on_path; turn OFF optimisation
 			ctrl->work_state = 0; //循迹模式
@@ -300,64 +298,75 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 			ctrl->car_state = run;
 			return;		
 		}
-		//刚跳到避障状态
+		// 刚跳进避障状态
 		ctrl->on_path = 1;
 	} else {
 		ctrl->on_path = 0;
 	}
 	
-	dis = Get_Distance();
+	dis = get_distance_filtered();
 	
 	switch (ctrl->car_state)
 	{
+		// 正常前进
 		case run:
 			if (dis >= AVOID_THRESH || dis == 1){
 				car_move(ctrl, forward);
 			} else {
+				// 遇到障碍
 				car_move(ctrl, stop);
 				ctrl->car_state = find_R;
+				
 				dis_L = 0; // 统一重设
 				dis_R = 0;
 			}
 			break;
-
-		case find_R: // turn right & detect distance
+		
+		// 右转
+		case find_R:
 			car_move(ctrl, turn_right);
 			ctrl->car_state = delay_R;
 			break;
 		
+		// 右方测距
 		case delay_R:
 			car_move(ctrl, stop);	
-			if (enc.L == 0 && enc.R == 0 && enc.B == 0)
-			{
+			if (enc.L == 0 && enc.R == 0 && enc.B == 0){
 				dis_R = get_distance_filtered();
-				if (dis_R > 60 || dis_R == 1){
+				if (dis_R > 60 || dis_R == 1)
+				{
 					ctrl->car_state = run;
 				}
-				else {
+				else
+				{
 					ctrl->car_state = find_L;
 				}
 			}
 			break;
-				
+		
+		// 左转
 		case find_L:
 			car_move(ctrl, turn_big_left);
 			ctrl->car_state = delay_L;
 			break;
 		
+		// 右方测距
 		case delay_L:
 			car_move(ctrl, stop);
 			if (enc.L == 0 && enc.R == 0 && enc.B == 0){
 				dis_L = get_distance_filtered();
-				if (dis_L > 60 || dis_L == 1){
+				if (dis_L > 60 || dis_L == 1)
+				{
 					ctrl->car_state = run;
 				}
-				else {
+				else
+				{
 					ctrl->car_state = compare_RL;
 				}
 			}
 			break;
 				
+		// 比较左右距离
 		case compare_RL:
 			if ((dis_L > dis_R || dis_L == 1) && dis_R != 1)
 			{
@@ -372,61 +381,54 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 	}
 }
 
-
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
 @函数名称：int get_distance_filtered(void)
-@功能说明：对超声波传感器测距进行去噪
+@功能说明：超声波测距去噪
 @参数说明：
-@函数返回：int distance_filtered 去噪后的距离值
+@函数返回：int most_common 去噪后的距离
 @修改时间：2024/08/22
 @调用方法：
 @备    注：
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 
-int get_distance_filtered(void){
-	int dis = 0, dis_temp = 0, dis_sum = 0;
-	int dis_filtered = 0;
-	int distance[5]={0};
-	for (int i = 0; i < 5; i++){
+int get_distance_filtered(void)
+{
+	int dis = 0;
+	int distance[5] = {0};
+	int max_count = 0;
+	int most_common = distance[0];
+
+	for (int i = 0; i < DIS_SAMPLES; i++)
+	{
 		dis = Get_Distance();
-		distance[i] = dis;
+		if (dis == 1)
+		{
+			i -= 1;
+			continue;
+		}
+		else
+		{
+			distance[i] = dis;
+		}
 		delay_ms(20);
 	}
-	
-	//排序
-	for (int i = 0; i < 5; i++){
-		for (int j = 0; j < 5-i; j++){
-			if (distance[j] > distance[j+1]){
-				dis_temp = distance[j];
-				distance[j] = distance[j+1];
-				distance[j+1] = dis_temp;
+
+	for (int i = 0; i < DIS_SAMPLES; i++)
+	{
+		int count = 0;
+		for (int j = 0; j < DIS_SAMPLES; j++)
+		{
+			if (abs(distance[i] - distance[j]) <= DIS_MAX_ERR)
+			{
+				count++;
 			}
 		}
-	}
-
-	//找到两个数最大的差
-	int error_max = distance[1] - distance[0];
-	int error_max_index = 0;
-	for (int i = 1; i < 4; i++){
-		if (distance[i+1]-distance[i] > error_max){
-			error_max = distance[i+1]-distance[i];
-			error_max_index = i;
+		if (count > max_count)
+		{
+			max_count = count;
+			most_common = distance[i];
 		}
 	}
 
-	if (error_max_index + 1 > 2){//优先取前部分的数
-		for (int i = 0; i < error_max_index; i++){
-			dis_sum += distance[i];
-		}
-		dis_filtered = dis_sum / (error_max_index +1);
-	}
-	else{//后部分
-		for (int i = 4; i > error_max_index; i--){
-			dis_sum += distance[i];
-		}
-		dis_filtered = dis_sum / (4 - error_max_index);
-	}
-
-	return dis_filtered;
-
+	return most_common;
 }
