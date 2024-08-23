@@ -123,8 +123,10 @@ def color_track(color_threshold):
         else:
             speed_B = 0
         #print(x_error, speed_L,speed_R,speed_B) # 串行终端打印，偏差和最终电机输出
-
-
+    else:
+        speed_L = min_speed
+        speed_R = min_speed
+        speed_B = min_speed
 
     return
 
