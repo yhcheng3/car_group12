@@ -110,4 +110,8 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele);
 
 int get_distance_filtered(void);
 
+void recv_torque(controller_t *ctrl);
+
+void recv_img(controller_t *ctrl);
+
 #endif
