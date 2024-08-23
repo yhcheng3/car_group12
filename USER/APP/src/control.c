@@ -394,7 +394,7 @@ QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 int get_distance_filtered(void)
 {
 	int dis = 0;
-	int distance[5] = {0};
+	int distance[DIS_SAMPLES] = {0};
 	int max_count = 0;
 	int most_common = distance[0];
 
@@ -418,6 +418,10 @@ int get_distance_filtered(void)
 		int count = 0;
 		for (int j = 0; j < DIS_SAMPLES; j++)
 		{
+			if (i == j) 
+			{
+				continue;
+			}
 			if (abs(distance[i] - distance[j]) <= DIS_MAX_ERR)
 			{
 				count++;
