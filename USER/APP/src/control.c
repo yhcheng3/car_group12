@@ -7,7 +7,7 @@ extern u8 ReadBuff[1024];
 int dis_R = 0, dis_L = 0;
 int read_cnt = 0; // No. of reads to be averaged
 
-//------------³õÊ¼»¯--------------
+//------------åˆå§‹åŒ–--------------
 void init_ctrl(controller_t *ctrl) {
 	ctrl->B = 0;
 	ctrl->L = 0;
@@ -38,7 +38,7 @@ void init_enc(encoder_t *enc) {
 }
 
 
-//------------Ñ­¼£--------------
+//------------å¾ªè¿¹--------------
 uint8_t invert(uint8_t val) // Use if background is white
 {
 	if (val == 0) val = 1;
@@ -57,13 +57,13 @@ void read_sensor(photoele_t *photoele)
 }
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-@º¯ÊıÃû³Æ£ºvoid set_PWM(controller_t  *ctrl, int car_V, int E_V, int motor_flag)
-@¹¦ÄÜËµÃ÷£º³£¹æÑ­¼£Ê±µ÷ÓÃ¡£¸ù¾İset_controlËã³öµÄ¸÷²ÎÊı£¬Ëã³öºÏÀíµÄµç»úÊäÈë£¬²¢¸³¸ø*ctrl¡£
-@²ÎÊıËµÃ÷£ºcar_V: ÓÉset_controlËã³ö£¬¡°ËÙ¶È¡±£»E_V: ÓÉset_controlËã³ö£¬¡°×ªÏòÁéÃô¶È¡±£»
-@º¯Êı·µ»Ø£ºÎŞ
-@ĞŞ¸ÄÊ±¼ä£º2024/08/20
-@µ÷ÓÃ·½·¨£º
-@±¸    ×¢£º
+@å‡½æ•°åç§°ï¼švoid set_PWM(controller_t  *ctrl, int car_V, int E_V, int motor_flag)
+@åŠŸèƒ½è¯´æ˜ï¼šå¸¸è§„å¾ªè¿¹æ—¶è°ƒç”¨ã€‚æ ¹æ®set_controlç®—å‡ºçš„å„å‚æ•°ï¼Œç®—å‡ºåˆç†çš„ç”µæœºè¾“å…¥ï¼Œå¹¶èµ‹ç»™*ctrlã€‚
+@å‚æ•°è¯´æ˜ï¼šcar_V: ç”±set_controlç®—å‡ºï¼Œâ€œé€Ÿåº¦â€ï¼›E_V: ç”±set_controlç®—å‡ºï¼Œâ€œè½¬å‘çµæ•åº¦â€ï¼›
+@å‡½æ•°è¿”å›ï¼šæ— 
+@ä¿®æ”¹æ—¶é—´ï¼š2024/08/20
+@è°ƒç”¨æ–¹æ³•ï¼š
+@å¤‡    æ³¨ï¼š
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void set_PWM(controller_t  *ctrl, int car_V, int E_V) {
 	ctrl->L = car_V + E_V * E_FACTOR;
@@ -78,13 +78,13 @@ void set_PWM(controller_t  *ctrl, int car_V, int E_V) {
 }
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-@º¯ÊıÃû³Æ£ºvoid circle_PWM(controller_t *ctrl, int threshold)
-@¹¦ÄÜËµÃ÷£ºÑ°ÕÒ¹ì¼£Ê±µ÷ÓÃ¡£×ªÈ¦¡£
-@²ÎÊıËµÃ÷£ºctrl->rotate_dir£ºÓÅÏÈÑ°ÕÒ·½Ïò
-@º¯Êı·µ»Ø£ºÎŞ
-@ĞŞ¸ÄÊ±¼ä£º2024/08/20
-@µ÷ÓÃ·½·¨£º
-@±¸    ×¢£º
+@å‡½æ•°åç§°ï¼švoid circle_PWM(controller_t *ctrl, int threshold)
+@åŠŸèƒ½è¯´æ˜ï¼šå¯»æ‰¾è½¨è¿¹æ—¶è°ƒç”¨ã€‚è½¬åœˆã€‚
+@å‚æ•°è¯´æ˜ï¼šctrl->rotate_dirï¼šä¼˜å…ˆå¯»æ‰¾æ–¹å‘
+@å‡½æ•°è¿”å›ï¼šæ— 
+@ä¿®æ”¹æ—¶é—´ï¼š2024/08/20
+@è°ƒç”¨æ–¹æ³•ï¼š
+@å¤‡    æ³¨ï¼š
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void circle_PWM(controller_t *ctrl) {
 	if (abs(ctrl->rotate_cnt * PERIOD) < CRCL_THRESH) { // Around 135 deg
@@ -129,15 +129,15 @@ void circle_PWM(controller_t *ctrl) {
 }
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-@º¯ÊıÃû³Æ£ºvoid set_control(controller_t *ctrl, photoele_t *photoele, int motor_flag)
-@¹¦ÄÜËµÃ÷£º¸ù¾İ¹âµç´«¸ĞÆ÷µÄÖµ£¬×ªÈ¦¡¢ºóÍË»òÑ­¼£
-@²ÎÊıËµÃ÷£º*photoele: ¸ù¾İ¹âµç´«¸ĞÆ÷µÄÖµ£¬Ëã³öºÏÀíµÄµç»úÊäÈë£¬²¢¸³¸ø*ctrl
-@º¯Êı·µ»Ø£ºÎŞ
-@ĞŞ¸ÄÊ±¼ä£º2024/08/20
-@µ÷ÓÃ·½·¨£º
-@±¸    ×¢£º³¬Éù²¨Ä£¿é¼ì²âµ½ÕÏ°­ÎïÊ±£¬ÇĞ»»ÖÁ±ÜÕÏ×´Ì¬£¨work_state = 1£©
-					 Ä£Ê½0ÏÂ£¬Ğı×ªROT_THRESHÈ¦ÈÔÎ´ÕÒµ½Â·¾¶Ê±£¬ºóÍË
-					 Ä£Ê½1ÏÂ£¬Ğı×ªROT_THRESHÈ¦ÈÔÎ´ÕÒµ½Â·¾¶Ê±£¬ÇĞ»»ÖÁ±ÜÕÏ×´Ì¬£¨work_state = 1£©
+@å‡½æ•°åç§°ï¼švoid set_control(controller_t *ctrl, photoele_t *photoele, int motor_flag)
+@åŠŸèƒ½è¯´æ˜ï¼šæ ¹æ®å…‰ç”µä¼ æ„Ÿå™¨çš„å€¼ï¼Œè½¬åœˆã€åé€€æˆ–å¾ªè¿¹
+@å‚æ•°è¯´æ˜ï¼š*photoele: æ ¹æ®å…‰ç”µä¼ æ„Ÿå™¨çš„å€¼ï¼Œç®—å‡ºåˆç†çš„ç”µæœºè¾“å…¥ï¼Œå¹¶èµ‹ç»™*ctrl
+@å‡½æ•°è¿”å›ï¼šæ— 
+@ä¿®æ”¹æ—¶é—´ï¼š2024/08/20
+@è°ƒç”¨æ–¹æ³•ï¼š
+@å¤‡    æ³¨ï¼šè¶…å£°æ³¢æ¨¡å—æ£€æµ‹åˆ°éšœç¢ç‰©æ—¶ï¼Œåˆ‡æ¢è‡³é¿éšœçŠ¶æ€ï¼ˆwork_state = 1ï¼‰
+					 æ¨¡å¼0ä¸‹ï¼Œæ—‹è½¬ROT_THRESHåœˆä»æœªæ‰¾åˆ°è·¯å¾„æ—¶ï¼Œåé€€
+					 æ¨¡å¼1ä¸‹ï¼Œæ—‹è½¬ROT_THRESHåœˆä»æœªæ‰¾åˆ°è·¯å¾„æ—¶ï¼Œåˆ‡æ¢è‡³é¿éšœçŠ¶æ€ï¼ˆwork_state = 1ï¼‰
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void set_control(controller_t *ctrl, photoele_t *photoele) 
 {
@@ -146,27 +146,27 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 	
 	E_V = (photoele->a * 2 + photoele->b * 1) - (photoele->c * 1 + photoele->d * 2);
 	
-	//È«1£º¼ì²â²»µ½¹ì¼£
+	//å…¨1ï¼šæ£€æµ‹ä¸åˆ°è½¨è¿¹
 	if (photoele->a == 1 && photoele->b == 1 && photoele->c == 1 && photoele->d == 1) { //|| 
 	// (photoele->a == 0 && photoele->b == 0 && photoele->c == 0 && photoele->d == 0))//all black
 		
-		ctrl->on_path = 0; //²»ÔÚ¹ì¼£ÉÏ
+		ctrl->on_path = 0; //ä¸åœ¨è½¨è¿¹ä¸Š
 		
-		// -----------------Ñ°ÕÒ¹ì¼££¨×ªÈ¦¡¢ºóÍË£©------------------
+		// -----------------å¯»æ‰¾è½¨è¿¹ï¼ˆè½¬åœˆã€åé€€ï¼‰------------------
 		if (ctrl->rotate_times < ROT_THRESH){
-			// ×ªÈ¦
+			// è½¬åœˆ
 			if ((ctrl->rotate_cnt) == 0) {
-				MotorCtrl3w(0, 0, 0); // ¸ÕÌø½øĞı×ª×´Ì¬£¬É·³µ
+				MotorCtrl3w(0, 0, 0); // åˆšè·³è¿›æ—‹è½¬çŠ¶æ€ï¼Œç…è½¦
 				delay_ms(PERIOD);
 			}
 			circle_PWM(ctrl); 
 			
 		} else if (ctrl->rotate_times == ROT_THRESH){
-			// ×ªÈ¦ºóÑÓÊ±
+			// è½¬åœˆåå»¶æ—¶
 			delay_ms(TWIST_DELAY); // Wait for twist to finish
 			(ctrl->rotate_times)++;
 			
-			// Ä£Ê½1ÏÂ´¥·¢Ä£Ê½×ª»»£¬²»ºóÍË
+			// æ¨¡å¼1ä¸‹è§¦å‘æ¨¡å¼è½¬æ¢ï¼Œä¸åé€€
 			if (ctrl->mode == 1) {
 				ctrl->work_state = 1;
 				(ctrl->rotate_cnt) = 0;
@@ -174,25 +174,25 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 				return; // Possible bug
 			}
 			
-		} else { //´ËÊ±rotate_times > ROT_THRESH
-			// Ä£Ê½0ÏÂºóÍË
+		} else { //æ­¤æ—¶rotate_times > ROT_THRESH
+			// æ¨¡å¼0ä¸‹åé€€
 			car_V = -CAR_REV;
 			set_PWM(ctrl, car_V , E_V);
 		}
 	}
 	
-	//²»ÊÇÈ«1£º¼ì²âµ½¹ì¼£
+	//ä¸æ˜¯å…¨1ï¼šæ£€æµ‹åˆ°è½¨è¿¹
 	else
 	{
 		ctrl->on_path = 1;
 
-		// --------------------³£¹æÑ­¼£-----------------------
+		// --------------------å¸¸è§„å¾ªè¿¹-----------------------
 		
-		// E_V < 0ÒâÎ¶¹ì¼£ÔÚ×ó±ß£¬Ôò¹ì¼£ÏûÊ§Ê±£¬¸ÃÓÅÏÈÕÒ×ó±ß£»rotate_dir 0ÓÒ 1×ó
-		// rotate_dirÓÉcircle_PWMµ÷ÓÃ
+		// E_V < 0æ„å‘³è½¨è¿¹åœ¨å·¦è¾¹ï¼Œåˆ™è½¨è¿¹æ¶ˆå¤±æ—¶ï¼Œè¯¥ä¼˜å…ˆæ‰¾å·¦è¾¹ï¼›rotate_dir 0å³ 1å·¦
+		// rotate_dirç”±circle_PWMè°ƒç”¨
 		ctrl->rotate_dir = (E_V < 0);  
 		
-		//ÕÒ»Ø¹ì¼£Ê±£¬Ó¦µ±ÇåÁãÑ°¼£Ïà¹Ø²ÎÊı
+		//æ‰¾å›è½¨è¿¹æ—¶ï¼Œåº”å½“æ¸…é›¶å¯»è¿¹ç›¸å…³å‚æ•°
 		(ctrl->rotate_cnt) = 0;
 		(ctrl->rotate_times) = 0;
 		
@@ -202,20 +202,20 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 		set_PWM(ctrl, car_V , E_V);
 	}
 	
-	// ÏŞ·ù
+	// é™å¹…
 	ctrl->L = ((ctrl->L) < (-MAX_VAL) ? (-MAX_VAL) : ((ctrl->L) > (MAX_VAL) ? (MAX_VAL) : (ctrl->L)));
 	ctrl->R = ((ctrl->R) < (-MAX_VAL) ? (-MAX_VAL) : ((ctrl->R) > (MAX_VAL) ? (MAX_VAL) : (ctrl->R)));
 	ctrl->B = ((ctrl->B) < (-MAX_VAL) ? (-MAX_VAL) : ((ctrl->B) > (MAX_VAL) ? (MAX_VAL) : (ctrl->B)));
 
 	// Change on_path before switching modes
-	// Óöµ½ÕÏ°­£¬´¥·¢Ä£Ê½×ª»»
-	dis = Get_Distance();
+	// é‡åˆ°éšœç¢ï¼Œè§¦å‘æ¨¡å¼è½¬æ¢
+	dis = get_distance_filtered();
 	if (dis < SWITCH_THRESH && dis != 1) {
 		ctrl->work_state = 1;
 	}
 }
 
-//------------±ÜÕÏ--------------
+//------------é¿éšœ--------------
 void read_enc(void)
 {
 		enc.B = Read_Encoder(2);
@@ -223,7 +223,7 @@ void read_enc(void)
 		enc.R = Read_Encoder(3);
 }
 
-void car_move(controller_t *ctrl, MoveDir move)//Óöµ½ÕÏ°­ÎïÊ±µÄÔË¶¯·½Ê½
+void car_move(controller_t *ctrl, MoveDir move)//é‡åˆ°éšœç¢ç‰©æ—¶çš„è¿åŠ¨æ–¹å¼
 {
 	switch(move)
 	{
@@ -272,121 +272,102 @@ void car_move(controller_t *ctrl, MoveDir move)//Óöµ½ÕÏ°­ÎïÊ±µÄÔË¶¯·½Ê½
 }
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-@º¯ÊıÃû³Æ£ºvoid ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele)
-@¹¦ÄÜËµÃ÷£º¸ù¾İ³¬Éù²¨ºÍĞ¡³µ×´Ì¬½øĞĞ±ÜÕÏ
-@²ÎÊıËµÃ÷£º*photoele: ¸ù¾İ¹âµç´«¸ĞÆ÷µÄÖµ£¬Ëã³öºÏÀíµÄµç»úÊäÈë£¬²¢¸³¸ø*ctrl
-@º¯Êı·µ»Ø£ºÎŞ
-@ĞŞ¸ÄÊ±¼ä£º2024/08/22
-@µ÷ÓÃ·½·¨£º
-@±¸    ×¢£º¸ù¾İon_pathÅĞ¶ÏÊÇ·ñ´Ó·ÇÂ·¹ì·µ»ØÂ·¹ì¡£ÈçÊÇ£¬´¥·¢×´Ì¬×ª»»¡£
+@å‡½æ•°åç§°ï¼švoid ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele)
+@åŠŸèƒ½è¯´æ˜ï¼šæ ¹æ®è¶…å£°æ³¢å’Œå°è½¦çŠ¶æ€è¿›è¡Œé¿éšœ
+@å‚æ•°è¯´æ˜ï¼š*photoele: æ ¹æ®å…‰ç”µä¼ æ„Ÿå™¨çš„å€¼ï¼Œç®—å‡ºåˆç†çš„ç”µæœºè¾“å…¥ï¼Œå¹¶èµ‹ç»™*ctrl
+@å‡½æ•°è¿”å›ï¼šæ— 
+@ä¿®æ”¹æ—¶é—´ï¼š2024/08/22
+@è°ƒç”¨æ–¹æ³•ï¼š
+@å¤‡    æ³¨ï¼šæ ¹æ®on_pathåˆ¤æ–­æ˜¯å¦ä»éè·¯è½¨è¿”å›è·¯è½¨ã€‚å¦‚æ˜¯ï¼Œè§¦å‘çŠ¶æ€è½¬æ¢ã€‚
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 	int dis = 0; 
 	
-	// ¶ÁÈ¡¹âµçĞÅÏ¢
+	// è¯»å–å…‰ç”µä¿¡æ¯
 	// Not in stm32f1xx_it.c, as must be right before below condition check.
 	read_sensor(photoele);
 	
-	// ÔÚÂ·¹ìÉÏ
+	// åœ¨è·¯è½¨ä¸Š
 	if (!(photoele->a == 1 && photoele->b == 1 && 
 				photoele->c == 1 && photoele->d == 1)) 
 	{
-		// ´Ó·ÇÂ·¹ì·µ»ØÂ·¹ì£¬´¥·¢×´Ì¬×ª»»
+		// ä»éè·¯è½¨è¿”å›è·¯è½¨ï¼Œè§¦å‘çŠ¶æ€è½¬æ¢
 		if (ctrl->on_path == 0) { 
 			// Possible bug for on_path; turn OFF optimisation
-			ctrl->work_state = 0; //Ñ­¼£Ä£Ê½
-			ctrl->on_path = 1;    //·µ»ØÂ·¹ì
+			ctrl->work_state = 0; //å¾ªè¿¹æ¨¡å¼
+			ctrl->on_path = 1;    //è¿”å›è·¯è½¨
 			ctrl->car_state = run;
 			return;		
 		}
-		// ¸ÕÌø½ø±ÜÕÏ×´Ì¬
+		// åˆšè·³è¿›é¿éšœçŠ¶æ€
 		ctrl->on_path = 1;
 	} else {
 		ctrl->on_path = 0;
 	}
 	
-	dis = Get_Distance();
+	dis = get_distance_filtered();
 	
 	switch (ctrl->car_state)
 	{
-		// Õı³£Ç°½ø
+		// æ­£å¸¸å‰è¿›
 		case run:
 			if (dis >= AVOID_THRESH || dis == 1){
 				car_move(ctrl, forward);
 			} else {
-				// Óöµ½ÕÏ°­
+				// é‡åˆ°éšœç¢
 				car_move(ctrl, stop);
 				ctrl->car_state = find_R;
 				
-				dis_L = 0; // Í³Ò»ÖØÉè
+				dis_L = 0; // ç»Ÿä¸€é‡è®¾
 				dis_R = 0;
 			}
 			break;
 		
-		// ÓÒ×ª
+		// å³è½¬
 		case find_R:
 			car_move(ctrl, turn_right);
 			ctrl->car_state = delay_R;
 			break;
 		
-		// ÓÒ·½²â¾à
+		// å³æ–¹æµ‹è·
 		case delay_R:
 			car_move(ctrl, stop);	
-			if (enc.L == 0 && enc.R == 0 && enc.B == 0)
-			{
-				if (read_cnt++ < 5)
+			if (enc.L == 0 && enc.R == 0 && enc.B == 0){
+				dis_R = get_distance_filtered();
+				if (dis_R > 60 || dis_R == 1)
 				{
-					dis_R += dis;
+					ctrl->car_state = run;
 				}
-				else {
-					// ²â5´ÎÈ¡Æ½¾ù
-					dis_R = dis_R / 5;
-					read_cnt = 0;
-					
-					// ÓÒ·½¾àÀë¹»Ô¶£¬Ö±½ÓÇ°ĞĞ
-					if (dis_R > 60 || dis_R == 1)
-					{
-						ctrl->car_state = run;
-					}
-					else {
-					// ²»¹»Ô¶
-						ctrl->car_state = find_L;
-					}
+				else
+				{
+					ctrl->car_state = find_L;
 				}
 			}
 			break;
 		
-		// ×ó×ª
+		// å·¦è½¬
 		case find_L:
 			car_move(ctrl, turn_big_left);
 			ctrl->car_state = delay_L;
 			break;
 		
-		// ÓÒ·½²â¾à
+		// å³æ–¹æµ‹è·
 		case delay_L:
 			car_move(ctrl, stop);
-			if (enc.L == 0 && enc.R == 0 && enc.B == 0)
+			if (enc.L == 0 && enc.R == 0 && enc.B == 0){
+				dis_L = get_distance_filtered();
+				if (dis_L > 60 || dis_L == 1)
 				{
-					if (read_cnt++ < 5)
-					{
-						dis_L += dis;
-					}
-					else {
-						read_cnt = 0;
-						dis_L = dis_L / 5;
-						
-						if (dis_L > 60 || dis_R == 1)
-						{
-							ctrl->car_state = run;
-						}
-						else {
-							ctrl->car_state = compare_RL;
-						}
-					}
+					ctrl->car_state = run;
 				}
+				else
+				{
+					ctrl->car_state = compare_RL;
+				}
+			}
 			break;
 				
-		// ±È½Ï×óÓÒ¾àÀë
+		// æ¯”è¾ƒå·¦å³è·ç¦»
 		case compare_RL:
 			if ((dis_L > dis_R || dis_L == 1) && dis_R != 1)
 			{
@@ -402,28 +383,83 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 }
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-@º¯ÊıÃû³Æ£ºvoid recv_torque(controller_t *ctrl)
-@¹¦ÄÜËµÃ÷£º´ÓÏà»ú½ÓÊÕµç»ú¿ØÖÆ·ù¶È
-@²ÎÊıËµÃ÷£º
-@º¯Êı·µ»Ø£ºÎŞ
-@ĞŞ¸ÄÊ±¼ä£º2024/08/23
-@µ÷ÓÃ·½·¨£º
-@±¸    ×¢£ºÈçÓÃMicroPython£¬´ÓÏà»ú¶Ë·¢ËÍuart.write(str([left, right, back])+'\n')     
+@å‡½æ•°åç§°ï¼šint get_distance_filtered(void)
+@åŠŸèƒ½è¯´æ˜ï¼šè¶…å£°æ³¢æµ‹è·å»å™ª
+@å‚æ•°è¯´æ˜ï¼š
+@å‡½æ•°è¿”å›ï¼šint most_common å»å™ªåçš„è·ç¦»
+@ä¿®æ”¹æ—¶é—´ï¼š2024/08/22
+@è°ƒç”¨æ–¹æ³•ï¼š
+@å¤‡    æ³¨ï¼š
+QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
+
+int get_distance_filtered(void)
+{
+	int dis = 0;
+	int distance[DIS_SAMPLES] = {0};
+	int max_count = 0;
+	int most_common = distance[0];
+
+	for (int i = 0; i < DIS_SAMPLES; i++)
+	{
+		dis = Get_Distance();
+		if (dis == 1)
+		{
+			i -= 1;
+			continue;
+		}
+		else
+		{
+			distance[i] = dis;
+		}
+		delay_ms(20);
+	}
+
+	for (int i = 0; i < DIS_SAMPLES; i++)
+	{
+		int count = 0;
+		for (int j = 0; j < DIS_SAMPLES; j++)
+		{
+			if (i == j) 
+			{
+				continue;
+			}
+			if (abs(distance[i] - distance[j]) <= DIS_MAX_ERR)
+			{
+				count++;
+			}
+		}
+		if (count > max_count)
+		{
+			max_count = count;
+			most_common = distance[i];
+		}
+	}
+	return most_common;
+}
+
+/*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+@å‡½æ•°åç§°ï¼švoid recv_torque(controller_t *ctrl)
+@åŠŸèƒ½è¯´æ˜ï¼šä»ç›¸æœºæ¥æ”¶ç”µæœºæ§åˆ¶å¹…åº¦
+@å‚æ•°è¯´æ˜ï¼š
+@å‡½æ•°è¿”å›ï¼šæ— 
+@ä¿®æ”¹æ—¶é—´ï¼š2024/08/23
+@è°ƒç”¨æ–¹æ³•ï¼š
+@å¤‡    æ³¨ï¼šå¦‚ç”¨MicroPythonï¼Œä»ç›¸æœºç«¯å‘é€uart.write(str([left, right, back])+'\n')     
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void recv_torque(controller_t *ctrl) {
 	int left = 0, right = 0, back = 0;
 	
-	if(receive_oneline3 != 0) // ´ÓÏà»ú½ÓÊÕĞÅÏ¢
+	if(receive_oneline3 != 0) // ä»ç›¸æœºæ¥æ”¶ä¿¡æ¯
 	{
-		// uart_SendBuf(&USART3_Handler, (uint8_t*)ReadBuff);//»Ø·¢Êı¾İ£¬¹©¾À´í»úÖÆ
+		// uart_SendBuf(&USART3_Handler, (uint8_t*)ReadBuff);//å›å‘æ•°æ®ï¼Œä¾›çº é”™æœºåˆ¶
 		sscanf((char*)ReadBuff, "[%d, %d, %d]", &left, &right, &back);
-		// OLED_P8x16Str(0, 4, (char*)ReadBuff); //½«½ÓÊÕµ½µÄÊı¾İÏÔÊ¾µ½OLED
+		// OLED_P8x16Str(0, 4, (char*)ReadBuff); //å°†æ¥æ”¶åˆ°çš„æ•°æ®æ˜¾ç¤ºåˆ°OLED
 		
 		ctrl->L = (int16_t)(left);
 		ctrl->R = (int16_t)(right);
 		ctrl->B = (int16_t)(back);
 		
-		receive_oneline3=0; //Çå³ıÒ»Ö¡£¨\n£©Êı¾İ½ÓÊÕÍê³É±êÖ¾Î»
+		receive_oneline3=0; //æ¸…é™¤ä¸€å¸§ï¼ˆ\nï¼‰æ•°æ®æ¥æ”¶å®Œæˆæ ‡å¿—ä½
 	}
 	// delay_ms(100); Don't need delay; control() is called in stm32f1xx_it.c
 	// Possible bug; incompatible baud rate
@@ -431,25 +467,25 @@ void recv_torque(controller_t *ctrl) {
 }
 
 /*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-@º¯ÊıÃû³Æ£ºvoid recv_torque(controller_t *ctrl)
-@¹¦ÄÜËµÃ÷£º´ÓÏà»ú½ÓÊÕĞ¡Çò¡¢ÇòÃÅĞÅÏ¢
-@²ÎÊıËµÃ÷£º
-@º¯Êı·µ»Ø£ºÎŞ
-@ĞŞ¸ÄÊ±¼ä£º2024/08/23
-@µ÷ÓÃ·½·¨£º
-@±¸    ×¢£ºÈçÓÃMicroPython£¬´ÓÏà»ú¶Ë·¢ËÍ
+@å‡½æ•°åç§°ï¼švoid recv_torque(controller_t *ctrl)
+@åŠŸèƒ½è¯´æ˜ï¼šä»ç›¸æœºæ¥æ”¶å°çƒã€çƒé—¨ä¿¡æ¯
+@å‚æ•°è¯´æ˜ï¼š
+@å‡½æ•°è¿”å›ï¼šæ— 
+@ä¿®æ”¹æ—¶é—´ï¼š2024/08/23
+@è°ƒç”¨æ–¹æ³•ï¼š
+@å¤‡    æ³¨ï¼šå¦‚ç”¨MicroPythonï¼Œä»ç›¸æœºç«¯å‘é€
 					 uart.write(str([ball_x, ball_y, ball_w, ball_h, goal_x, goal_y, goal_w, goal_h])+'\n')     
 QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 void recv_img(controller_t *ctrl) {
 	int ball_x, ball_y, ball_w, ball_h;
 	int goal_x, goal_y, goal_w, goal_h;
 	
-	if(receive_oneline3 != 0) // ´ÓÏà»ú½ÓÊÕĞÅÏ¢
+	if(receive_oneline3 != 0) // ä»ç›¸æœºæ¥æ”¶ä¿¡æ¯
 	{
-		// uart_SendBuf(&USART3_Handler, (uint8_t*)ReadBuff);//»Ø·¢Êı¾İ£¬¹©¾À´í»úÖÆ
+		// uart_SendBuf(&USART3_Handler, (uint8_t*)ReadBuff);//å›å‘æ•°æ®ï¼Œä¾›çº é”™æœºåˆ¶
 		sscanf((char*)ReadBuff, "[%d, %d, %d, %d, %d, %d, %d, %d]", &ball_x, &ball_y, &ball_w, &ball_h, &goal_x, &goal_y, &goal_w, &goal_h);
-		// OLED_P8x16Str(0, 4, (char*)ReadBuff); //½«½ÓÊÕµ½µÄÊı¾İÏÔÊ¾µ½OLED
-		receive_oneline3=0; //Çå³ıÒ»Ö¡£¨\n£©Êı¾İ½ÓÊÕÍê³É±êÖ¾Î»
+		// OLED_P8x16Str(0, 4, (char*)ReadBuff); //å°†æ¥æ”¶åˆ°çš„æ•°æ®æ˜¾ç¤ºåˆ°OLED
+		receive_oneline3=0; //æ¸…é™¤ä¸€å¸§ï¼ˆ\nï¼‰æ•°æ®æ¥æ”¶å®Œæˆæ ‡å¿—ä½
 		
 		// TODO: Calculate torque here
 	}
