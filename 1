@@ -42,7 +42,7 @@ line_thresholddd = [
 min_speed = 2000    # 最小速度（电机的死区，低于这个值电机不会启动）
 speed = 9300        # 基准速度（控制整体前进速度，小车运行时的基本速度）
 
-speed_L = 0         # 左轮速度暂存全局变量（各电机的实际速度值：基准±巡线偏差值）
+speed_L = 0         # 左轮速度暂存全局变量（各电机的实际速度值：基准±偏差值）
 speed_R = 0         # 右轮速度暂存全局变量
 speed_B = 0         # 后轮速度暂存全局变量
 
@@ -206,35 +206,48 @@ while(True):
                     time.sleep_ms(300)
 
                 if 10<(blobss[0]).cx()<290:
+                    if blobsss :
+
+                        x_error = (blobss[0]).cx()-img.width()/2                       # 计算红色中心偏差x_error
+                        x2_error = (blobsss[0]).cx()-(blobss[0]).cx()
+
+                        speed_L = speed + x_error*35 + x2_error*35         
+                        speed_R = -speed + x_error*35 + x2_error*35          
+                        #error大 向右转
+                        if x_error>8:
+                           speed_B = 5000    
+                        if x_error<-8:
+                            speed_B =-5000
+                        else:
+                           speed_B = 0
 
 
-                    if blobsss and abs((blobsss[0]).cx()-(blobss[0]).cx())>200 :
-                        if blobsss.cx() > blobss.cx() :
-                            speed_L = -500
-                            speed_R = 500
-                            speed_B = -500
-                            time.sleep_ms(300)
+#                    if blobsss and 0<(blobsss[0]).cx()<100 :
+#                        if blobsss.cx() > blobss.cx() :
+#                            speed_L = -500
+#                            speed_R = 500
+#                            speed_B = -500
+#                            time.sleep_ms(300)
 
-                        if (blobsss[0]).cx() < (blobss[0]).cx() :
-                            speed_L = -500
-                            speed_R = 500
-                            speed_B = 500
-                            time.sleep_ms(300)
+#                        if (blobsss[0]).cx() < (blobss[0]).cx() :
+#                            speed_L = -500
+#                            speed_R = 500
+#                            speed_B = 500
+#                            time.sleep_ms(300)
 
-                    if blobsss and abs((blobsss[0]).cx()-(blobss[0]).cx())<200 :
 
-                            blob = find_max(blobss)  # 提取blobs中面积最大的一个红色色块blob
-                            x_error = blob.cx()-img.width()/2                       # 计算红色中心偏差x_error
+#                            blob = find_max(blobss)  # 提取blobs中面积最大的一个红色色块blob
+#                            x_error = blob.cx()-img.width()/2                       # 计算红色中心偏差x_error
 
-                            speed_L = speed + x_error*35         
-                            speed_R = -speed + x_error*35        
-                            #error大 向右转
-                            if x_error>8:
-                               speed_B = 5000    
-                            if x_error<-8:
-                                speed_B =-5000
-                            else:
-                               speed_B = 0
+#                            speed_L = speed + x_error*35         
+#                            speed_R = -speed + x_error*35        
+#                            #error大 向右转
+#                            if x_error>8:
+#                               speed_B = 5000    
+#                            if x_error<-8:
+#                                speed_B =-5000
+#                            else:
+#                               speed_B = 0
 
                     else:
 
@@ -269,4 +282,38 @@ while(True):
                     speed_R = -500
                     speed_B = 0
                     time.sleep_ms(300)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        print(speed_L,speed_R,speed_B) # 串行终端打印，偏差和最终电机输出值
+
+
+        # 左轮
+        left = 0
+        right = 0
+        back = 0
+
+        # 放在 while() 里！
+        data = [speed_L,speed_R,speed_B]
+
+        uart.write(str(data) + '\n')
+
+        time.sleep_ms(300)
+
+
 
