@@ -18,6 +18,7 @@ QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
 photoele_t photoele; // 光电传感器
 encoder_t enc;
 controller_t ctrl; 
+pid_param_t pid;
 // int dis = 0; TODO: change to global variable? Timing clashes with ultrasonic_avoid()?
 
 int init_flag = 0;
@@ -45,6 +46,7 @@ int main(void)
 	Ultrasonic_Init();
 //===============================================================
 	//Car_main();			//超声波避障整车参考程序
+	PidInit(&pid);
 	init_ctrl(&ctrl);
 	init_photoele(&photoele);
 	init_enc(&enc);
@@ -85,8 +87,9 @@ void OLED_task(void) {
 }
 
 void control(void) {
+	// 转换模式
 	if (Read_key(KEY1)) {
-		ctrl.mode = 0; //
+		ctrl.mode = 0;
 	}
 	if (Read_key(KEY2)) {
 		ctrl.mode = 1;
@@ -110,6 +113,26 @@ void control(void) {
 			ultrasonic_avoid(&ctrl, &photoele);
 		}
 	}
+//	char txt[40];
+//	sprintf(txt, "DL %+05d", ctrl.L);
+//	OLED_P6x8Str(70,3, txt);
+//	
+//	sprintf(txt, "DR %+05d", ctrl.R);
+//	OLED_P6x8Str(70,4, txt);
+//	
+//	sprintf(txt, "DB %+05d", ctrl.B);
+//	OLED_P6x8Str(70,5, txt);
+	
+	// PID（若不用PID，注释即可）
+//	ctrl.B = PidLocCtrl(&pid, (enc.B * ENC_FACTOR) - ctrl.B);
+//	ctrl.L = PidLocCtrl(&pid, (enc.L * ENC_FACTOR) - ctrl.L);
+//	ctrl.R = PidLocCtrl(&pid, (enc.R * ENC_FACTOR) - ctrl.R);
+	
+	// 限幅
+	ctrl.B = constrain_float(ctrl.B, -MAX_VAL, MAX_VAL);
+	ctrl.L = constrain_float(ctrl.L, -MAX_VAL, MAX_VAL);
+	ctrl.R = constrain_float(ctrl.R, -MAX_VAL, MAX_VAL);
+	
 	MotorCtrl3w(ctrl.B, ctrl.L, ctrl.R);
 }
 

@@ -202,11 +202,6 @@ void set_control(controller_t *ctrl, photoele_t *photoele)
 		set_PWM(ctrl, car_V , E_V);
 	}
 	
-	// 限幅
-	ctrl->L = ((ctrl->L) < (-MAX_VAL) ? (-MAX_VAL) : ((ctrl->L) > (MAX_VAL) ? (MAX_VAL) : (ctrl->L)));
-	ctrl->R = ((ctrl->R) < (-MAX_VAL) ? (-MAX_VAL) : ((ctrl->R) > (MAX_VAL) ? (MAX_VAL) : (ctrl->R)));
-	ctrl->B = ((ctrl->B) < (-MAX_VAL) ? (-MAX_VAL) : ((ctrl->B) > (MAX_VAL) ? (MAX_VAL) : (ctrl->B)));
-
 	// Change on_path before switching modes
 	// 遇到障碍，触发模式转换
 	dis = get_distance_filtered();
@@ -411,7 +406,7 @@ int get_distance_filtered(void)
 		{
 			distance[i] = dis;
 		}
-		delay_ms(20);
+		delay_ms(2);
 	}
 
 	for (int i = 0; i < DIS_SAMPLES; i++)

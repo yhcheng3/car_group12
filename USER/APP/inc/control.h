@@ -15,8 +15,8 @@
 //----------circle_PWM()--------
 #define CRCL_FACTOR 800
 #define CRCL_TWIST_FACTOR 2800
-#define CRCL_THRESH 1000
-#define ROT_THRESH 1 //�����ת�������������
+#define CRCL_THRESH 150 // 旋转时长
+#define ROT_THRESH 1 // 寻迹旋转次数
 #define TWIST_DELAY 70
 
 //----------set_PWM()--------
@@ -34,12 +34,13 @@
 #define SWITCH_THRESH 20
 #define AVOID_THRESH 30
 
-//----------Multiply R motor by:-------
-#define RIGHT_FACTOR 1.2
-
 //----------get_distance_filtered()
 #define DIS_SAMPLES 5
 #define DIS_MAX_ERR 5
+
+//----------Multiply R motor by:-------
+#define RIGHT_FACTOR 1.2
+#define ENC_FACTOR 8 // Assuming enc - motor relation is linear, motor = 12*enc
 
 typedef struct
 {
@@ -80,7 +81,7 @@ typedef struct
 	
 	int on_path; // 0: Off path; 1: On path
 	
-	int mode; // 模式 0: 循迹会后退  1: 循迹会跳进避障状态
+	int mode; // 模式 0: 循迹会后退  1: 循迹会跳进避障状态  2: 接收相机信息
 }controller_t;
 
 // --------Initialise------
