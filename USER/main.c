@@ -21,7 +21,6 @@ controller_t ctrl;
 // int dis = 0; TODO: change to global variable? Timing clashes with ultrasonic_avoid()?
 
 int init_flag = 0;
-extern u8 ReadBuff[1024];		
 
 int main(void)
 {
@@ -37,7 +36,7 @@ int main(void)
 	OLED_Show_LQLogo(); // 显示LOGO
 	delay_ms(500);		// 延时等待
 	OLED_CLS();						//清屏
-	uart_init(USART_2,115200);		//初始化串口
+	// uart_init(USART_2,115200);		//初始化串口
 	uart_init(USART_3,115200);		//初始化串口
 	Encoder_Init_TIM2();			//编码器初始化
 	Encoder_Init_TIM3();			//编码器初始化
@@ -60,22 +59,22 @@ int main(void)
 
 void OLED_task(void) {
 	char txt[40];
-	sprintf(txt, "MtrL: %+04d   Path: %d", ctrl.L, ctrl.on_path);
+	sprintf(txt, "MtrL: %+05d   Path: %d", ctrl.L, ctrl.on_path);
 	OLED_P6x8Str(0,0,txt);	
 
-	sprintf(txt, "MtrR: %+04d ",ctrl.R);
+	sprintf(txt, "MtrR: %+05d ",ctrl.R);
 	OLED_P6x8Str(0,1,txt);	
 
-	sprintf(txt, "MtrB: %+04d ",ctrl.B);
+	sprintf(txt, "MtrB: %+05d ",ctrl.B);
 	OLED_P6x8Str(0,2,txt);
 	
-	sprintf(txt, "EncL: %+04d", enc.L);
+	sprintf(txt, "EncL: %+05d", enc.L);
 	OLED_P6x8Str(0,3, txt);
 	
-	sprintf(txt, "EncR: %+04d", enc.R);
+	sprintf(txt, "EncR: %+05d", enc.R);
 	OLED_P6x8Str(0,4, txt);
 	
-	sprintf(txt, "EncB: %+04d", enc.B);
+	sprintf(txt, "EncB: %+05d", enc.B);
 	OLED_P6x8Str(0,5, txt);
 
 	sprintf(txt, "Pht: %d %d %d %d Dis %04d", photoele.a, photoele.b, photoele.c, photoele.d, Get_Distance());
@@ -87,16 +86,29 @@ void OLED_task(void) {
 
 void control(void) {
 	if (Read_key(KEY1)) {
-		ctrl.mode = 0;
+		ctrl.mode = 0; //
 	}
 	if (Read_key(KEY2)) {
 		ctrl.mode = 1;
 	}
-
-	if (ctrl.work_state == 0) {
-		set_control(&ctrl, &photoele);
-	} else {
-		ultrasonic_avoid(&ctrl, &photoele);
+	if (Read_key(KEY3)) {
+		ctrl.mode = 2;
+	}
+	
+	if (ctrl.mode == 2) {
+		// Receive motor torques directly from UART, pass to ctrl.B, etc.
+		recv_torque(&ctrl);
+		
+		// Use if receiving image from camera
+		// recv_img(&ctrl);
+	}
+	else
+	{
+		if (ctrl.work_state == 0) {
+			set_control(&ctrl, &photoele);
+		} else {
+			ultrasonic_avoid(&ctrl, &photoele);
+		}
 	}
 	MotorCtrl3w(ctrl.B, ctrl.L, ctrl.R);
 }

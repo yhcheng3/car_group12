@@ -1,6 +1,7 @@
 #include "include.h"
 
 extern encoder_t enc;
+extern u8 ReadBuff[1024];		
 
 // Not global variables, we want speed not space.
 int dis_R = 0, dis_L = 0;
@@ -398,4 +399,61 @@ void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele){
 			}
 			break;
 	}
+}
+
+/*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+@函数名称：void recv_torque(controller_t *ctrl)
+@功能说明：从相机接收电机控制幅度
+@参数说明：
+@函数返回：无
+@修改时间：2024/08/23
+@调用方法：
+@备    注：如用MicroPython，从相机端发送uart.write(str([left, right, back])+'\n')     
+QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
+void recv_torque(controller_t *ctrl) {
+	int left = 0, right = 0, back = 0;
+	
+	if(receive_oneline3 != 0) // 从相机接收信息
+	{
+		// uart_SendBuf(&USART3_Handler, (uint8_t*)ReadBuff);//回发数据，供纠错机制
+		sscanf((char*)ReadBuff, "[%d, %d, %d]", &left, &right, &back);
+		// OLED_P8x16Str(0, 4, (char*)ReadBuff); //将接收到的数据显示到OLED
+		
+		ctrl->L = (int16_t)(left);
+		ctrl->R = (int16_t)(right);
+		ctrl->B = (int16_t)(back);
+		
+		receive_oneline3=0; //清除一帧（\n）数据接收完成标志位
+	}
+	// delay_ms(100); Don't need delay; control() is called in stm32f1xx_it.c
+	// Possible bug; incompatible baud rate
+	LED_Ctrl(RVS);
+}
+
+/*LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+@函数名称：void recv_torque(controller_t *ctrl)
+@功能说明：从相机接收小球、球门信息
+@参数说明：
+@函数返回：无
+@修改时间：2024/08/23
+@调用方法：
+@备    注：如用MicroPython，从相机端发送
+					 uart.write(str([ball_x, ball_y, ball_w, ball_h, goal_x, goal_y, goal_w, goal_h])+'\n')     
+QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ*/
+void recv_img(controller_t *ctrl) {
+	int ball_x, ball_y, ball_w, ball_h;
+	int goal_x, goal_y, goal_w, goal_h;
+	
+	if(receive_oneline3 != 0) // 从相机接收信息
+	{
+		// uart_SendBuf(&USART3_Handler, (uint8_t*)ReadBuff);//回发数据，供纠错机制
+		sscanf((char*)ReadBuff, "[%d, %d, %d, %d, %d, %d, %d, %d]", &ball_x, &ball_y, &ball_w, &ball_h, &goal_x, &goal_y, &goal_w, &goal_h);
+		// OLED_P8x16Str(0, 4, (char*)ReadBuff); //将接收到的数据显示到OLED
+		receive_oneline3=0; //清除一帧（\n）数据接收完成标志位
+		
+		// TODO: Calculate torque here
+	}
+	// delay_ms(100); Don't need delay; control() is called in stm32f1xx_it.c
+	// Possible bug; incompatible baud rate
+	LED_Ctrl(RVS);
 }
