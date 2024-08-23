@@ -37,6 +37,10 @@
 //----------Multiply R motor by:-------
 #define RIGHT_FACTOR 1.2
 
+//----------get_distance_filtered()
+#define DIS_SAMPLES 5
+#define DIS_MAX_ERR 5
+
 typedef struct
 {
 	uint8_t a;
@@ -103,5 +107,7 @@ void read_enc(void);
 void car_move(controller_t *ctrl, MoveDir move);
 
 void ultrasonic_avoid(controller_t *ctrl, photoele_t *photoele);
+
+int get_distance_filtered(void);
 
 #endif
