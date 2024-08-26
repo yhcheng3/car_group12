@@ -27,7 +27,7 @@ speed_R = 0         # 右轮速度暂存全局变量
 speed_B = 0         # 后轮速度暂存全局变量
 
 turn_factor = 10    # 后轮辅助转向的放大系数
-err_thres = 3       # 用于判断是否需要后轮转向
+err_thres = 10       # 用于判断是否需要后轮转向
 kick_thres = 90     # 用于判断是否直行踢球
 
 #======各个外设初始化↓↓↓==========================
@@ -111,6 +111,8 @@ def task_two(color_threshold):
                 speed_B = -min_speed + x_error * turn_factor    # 控制后轮电机转速协助转弯
             else:
                 speed_B = 0
+                speed_L = speed
+                speed_R = -speed
             #print(x_error, speed_L,speed_R,speed_B) # 串行终端打印，偏差和最终电机输出
         else:
             speed_L = min_speed
@@ -127,13 +129,13 @@ def task_two(color_threshold):
 # ================== 程序主循环 =======================
 while True:
     task1_flag = 0
-    task2_flag = 0
+    task2_flag = 1
     if task1_flag:
         task_one(red_threshold) #踢球
     if task2_flag:
         task_two(green_threshold) #找球门
     data = [int(speed_L),int(speed_R),int(speed_B)]
     uart.write(str(data)+'\n')
-    #print(data)
-    time.sleep_ms(50)
+    print(data)
+    time.sleep_ms(100)
 
