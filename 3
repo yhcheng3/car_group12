@@ -1,0 +1,227 @@
+# This work is licensed under the MIT license.
+# Copyright (c) 2013-2023 OpenMV LLC. All rights reserved.
+# https://github.com/openmv/openmv/blob/master/LICENSE
+#
+# Hello World Example
+#
+# Welcome to the OpenMV IDE! Click on the green run arrow button below to run the script!
+
+#import sensor
+#import time
+
+#sensor.reset()  # Reset and initialize the sensor.
+#sensor.set_pixformat(sensor.RGB565)  # Set pixel format to RGB565 (or GRAYSCALE)
+#sensor.set_framesize(sensor.QVGA)  # Set frame size to QVGA (320x240)
+#sensor.skip_frames(time=2000)  # Wait for settings take effect.
+#clock = time.clock()  # Create a clock object to track the FPS.
+
+#while True:
+#    clock.tick()  # Update the FPS clock.
+#    img = sensor.snapshot()  # Take a picture and return the image.
+#    print(clock.fps())  # Note: OpenMV Cam runs about half as fast when connected
+#    # to the IDE. The FPS should increase once disconnected.
+
+
+# --------------------------------导入外部文件中的包和模块减↓↓↓----------------------------
+import sensor, image,time,display    # 导入摄像头传感器，图像，显示器相关包
+from pyb import UART,Pin,Timer
+from pid import PID # 从pyb包中导入Pin模块
+from LQ_Module import motor     # 从LQ_Module文件中导入motor
+uart = UART(3, 115200)
+# --------------------------------设置初始变量、参数↓↓↓--------------------------------------
+## 设置要寻找的线的阈值的阈值（色块法）
+#line_threshold = [
+#   (0, 40, -19, 16, -32, 14) #黑色，请在实际使用场景中采集
+#]
+line_thresholdd = [
+    (0, 100, 28, 127, -12, 49)   #红色，请在实际使用场景中采集
+]
+line_thresholddd = [
+    (30, 100, -55, -20, -10, 71)   #绿色，请在实际使用场景中采集
+]
+min_speed = 800    # 最小速度（电机的死区，低于这个值电机不会启动）
+speed = 1500        # 基准速度（控制整体前进速度，小车运行时的基本速度）
+speed_L = 0         # 左轮速度暂存全局变量（各电机的实际速度值：基准±偏差值）
+speed_R = 0         # 右轮速度暂存全局变量
+speed_B = 0         # 后轮速度暂存全局变量
+
+#start_flag = False  # 电机转动标志位，通过K0按键切换，为True时电机转动，否则电机不转
+#===============================各个外设初始化↓↓↓========================================
+
+# ---------------------------TFT-LCD显示初始化↓↓↓--------------------------------------
+lcd = display.SPIDisplay()          # 初始化显示屏（参数默认-空）
+lcd.clear()                         # 清屏
+pic=image.Image("/pic0.jpg")        # 读取图片
+lcd.write(pic)                      # 显示图片
+
+# ------------------------------按键初始化↓↓↓--------------------------------------
+#按键初始化,按键扫描，母版上K0,K1,K2分别对应P30,P31,P1
+#K0 = Pin('P30', Pin.IN, Pin.PULL_UP)
+#K1 = Pin('P31', Pin.IN, Pin.PULL_UP)
+#K2 = Pin('P1', Pin.IN, Pin.PULL_UP)
+
+# -----------------------------初始化三路电机控制PWM及DIR↓↓↓-------------------------------------
+# 电机引脚初始化 使用定时器1前三通道，10K Hz PWM,对应管脚P7,P8,P9,方向控制管脚，P22,P23,P24
+#motor1 = motor(timer=4, chl=1, freq=10000, pin_pwm="P7", pin_io="P22")
+#motor2 = motor(timer=4, chl=2, freq=10000, pin_pwm="P8", pin_io="P23")
+#motor3 = motor(timer=4, chl=3, freq=10000, pin_pwm="P9", pin_io="P24")
+
+# -----------------------------初始化摄像头↓↓↓-------------------------------------
+sensor.reset()                      # 初始化摄像头
+sensor.set_hmirror(True)            # 镜像（如果视觉模块倒着安装，则开启这个镜像）
+sensor.set_pixformat(sensor.RGB565) # 采集格式（彩色图像采集）
+sensor.set_framesize(sensor.LCD)    # 设置图像大小 128*160
+sensor.skip_frames(time = 2000)     # 跳过前两秒图像后，关闭自动增益白平衡
+sensor.set_auto_gain(False)         # 必须关闭自动曝光才能进行相对稳定的颜色跟踪
+sensor.set_auto_whitebal(False)     # 必须关闭自动白平衡才能进行相对稳定的颜色跟踪
+
+# -----------------------------自定义函数↓↓↓-------------------------------------
+## 在传入色块对象中找到面积最大的色块返回
+#def find_max(blobs):
+#    max_size=0
+#    for blob in blobs:
+#        if blob[2]*blob[3] > max_size:
+#            max_blob=blob
+#            max_size = blob[2]*blob[3]
+#    return max_blob
+
+# ================================= 程序主循环 ==========================================
+#f=True
+#tl=2000
+#tr=-11000
+#tb=-11000
+#l=13
+#r=14
+#a=20
+#b=90
+while(True):
+
+        img = sensor.snapshot()             # 获取一帧图像
+        blobsss = img.find_blobs(line_thresholddd,pixels_threshold=50, area_threshold=100, merge=True)
+
+        blobss = img.find_blobs(line_thresholdd,pixels_threshold=50, area_threshold=100, merge=True)
+
+        lcd.write(img)          # 显示屏显示图像
+
+
+
+        if blobsss:
+            img.draw_rectangle(blobsss[0].rect(), color=(255, 0 , 0))
+            img.draw_cross(blobsss[0].cx(), blobsss[0].cy(), color=(0, 0, 255))
+
+        if not blobss:
+            speed_L = -900
+            speed_R = -900
+            speed_B = -900
+
+
+
+        elif blobss:
+            img.draw_rectangle(blobss[0].rect(), color=(255, 0 , 0))
+            img.draw_cross(blobss[0].cx(), blobss[0].cy(), color=(0, 0, 255))
+            if blobsss and (blobsss[0]).w()>120 and (blobsss[0]).h()>110:
+                speed_L = 0
+                speed_R = 0
+                speed_B = 0
+                
+
+            else :
+                if (70<(blobss[0]).w()<=90):
+                    
+                        
+                    if blobsss and 40<(blobsss[0]).cx()<85:
+                        speed_L = 900
+                        speed_R = -900
+                        speed_B = 0
+                    elif blobsss :
+                        speed_L = 0
+                        speed_R = 0
+                        speed_B = -20*((blobsss[0]).cx()-(blobss[0]).cx())
+    
+                    else :
+                        speed_L = 0
+                        speed_R = 0
+                        speed_B = -1500
+                        time.sleep_ms(50)
+                        speed_L = 900
+                        speed_R = 900
+                        speed_B = 0
+                        
+    
+                elif (blobss[0]).w() > 90 :
+                    if 0<(blobss[0]).cx()<=35:
+                        speed_L = -900
+                        speed_R = -900
+                        speed_B = -900
+    
+                    elif 90<(blobss[0]).cx():
+                        speed_L = 900
+                        speed_R = 900
+                        speed_B = 900
+    
+                    elif 35<(blobss[0]).cx()<=90:
+                        if blobsss and  abs((blobsss[0]).cx()-(blobss[0]).cx())<=15:
+                            speed_L = 1100
+                            speed_R = -1100
+                            speed_B = 0
+    
+                        if blobsss and  abs((blobsss[0]).cx()-(blobss[0]).cx())>35:
+                            speed_L = 0
+                            speed_R = 0
+                            speed_B = -20*((blobsss[0]).cx()-(blobss[0]).cx())
+                        if blobsss and 15<abs((blobsss[0]).cx()-(blobss[0]).cx())<=35:
+    
+                            x_error = (blobss[0]).cx()-img.width()/2                       # 计算红色中心偏差x_error
+    
+                            x2_error = (blobsss[0]).cx()-(blobss[0]).cx()
+    
+                            speed_L = speed 
+    
+                            speed_R = -speed 
+                            #error大 向右转
+                            if x2_error>8:
+                                speed_B =-20*((blobsss[0]).cx()-(blobss[0]).cx())
+                            if x2_error<-8:
+                                speed_B =-20*((blobsss[0]).cx()-(blobss[0]).cx())
+                            else:
+                                speed_B = 0
+                        else:
+    
+                            speed_L = -1000
+                            speed_R = 1000
+                            speed_B = 0
+    
+#                    else:
+#                        speed_L = 0
+#                        speed_R = -1100
+#                        speed_B = 1100
+    
+    
+                elif (blobss[0]).w()<=70:
+                    if 0<(blobss[0]).cx()<25:
+                        speed_L = 700
+                        speed_R = 700
+                        speed_B = 700
+    
+    
+                    elif 100<(blobss[0]).cx()<125:
+                        speed_L = -700
+                        speed_R = -700
+                        speed_B = -700
+    
+    
+                    else:
+                        speed_L = 1100
+                        speed_R = -1100
+                        speed_B = 0
+                
+                
+
+        print(speed_L,speed_R,speed_B) # 串行终端打印，偏差和最终电机输出值
+
+        # 放在 while() 里！
+        data = [int(speed_L), int(speed_R), speed_B]
+
+        uart.write(str(data) + '\n')
+
+        time.sleep_ms(50)
