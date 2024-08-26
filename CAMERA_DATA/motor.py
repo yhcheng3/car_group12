@@ -28,7 +28,7 @@ speed_B = 0         # 后轮速度暂存全局变量
 
 turn_factor = 10    # 后轮辅助转向的放大系数
 err_thres = 4       # 用于判断是否需要后轮转向
-kick_thres = 85     # 用于判断是否直行踢球
+kick_thres = 90     # 用于判断是否直行踢球
 
 #======各个外设初始化↓↓↓==========================
 #
@@ -96,11 +96,16 @@ def task_two(color_threshold):
         img.draw_cross(blob_max.cx(), blob_max.cy(),color=(0, 0, 255))  # 根据色块位置在质心画蓝色十字
         x_error = blob_max.cx()-img.width()/2                       # 计算色块中心偏差x_error
         y_error = blob_max.cy()-img.height()/2
-        if y_error < -20:
+        if y_error < -20 & blob_max.w() < 80:
             #距离较远，直行靠近
             speed_L = speed
             speed_R = -speed
             speed_B = 0
+        elif blob_max.w() > 123 & blob_max.h() > 130:
+            #进入球门，为避免冲撞停止运动
+            speed_B = 0
+            speed_L = 0
+            speed_R = 0
         else:
             speed_L = speed + x_error * turn_factor            # 控制电机转速进行循迹，乘以放大系数，系数越大转向越迅速
             speed_R = -speed + x_error * turn_factor           # 基准速度+偏差
