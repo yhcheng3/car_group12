@@ -2,23 +2,6 @@
 # 调用示例,
 注意：需了解 所用管脚pin_pwm为定时器timer几的通道chl几
 
-# 从自定义模块LQ_Motor中导入两个自定义电机对象
-import LQ_Motor
-from LQ_Motor import motor,motor_brushless   # 不使用此句则需要在对象前加 模块名. LQ_Motor.motor(...)
-
-#参数(self, timer, chl, freq, pin_pwm, pin_io)
-
-motor_L = motor(timer=4, chl=3, freq=10000, pin_pwm="P9", pin_io="P24")
-
-
-motor_L.run_percent(cnt)   # PWM 百分比 计
-motor_L.run(cnt)           # 实际脉宽24000满
-
-#LQ 无刷驱动 在50Hz 下1~2ms范围2000~4000, 算上驱动死区可控范围约在 2240 ~3800
-
-M1= motor_brushless(4, 1, 50, "P7")  #参数(self, timer, chl, freq, pin_pwm)
-M1.run(2300)
-
 """
 import pyb,time,sensor
 from pyb import UART, Pin, Timer,ExtInt
@@ -82,7 +65,7 @@ def task_one(color_threshold):
         x_error = blob_max.cx()-img.width()/2                       # 计算色块中心偏差x_error
         speed_L = speed + x_error * turn_factor            # 控制电机转速进行循迹，乘以放大系数，系数越大转向越迅速
         speed_R = -speed + x_error * turn_factor   # 基准速度+偏差
-        if abs(x_error) < err_thres & blob_max.w() >= kick_thres:  #直行踢球
+        if abs(x_error) < err_thres & blob_max.w() > kick_thres:  #直行踢球
             speed_L = speed
             speed_R = -speed
             speed_B = 0
@@ -103,9 +86,8 @@ def task_one(color_threshold):
     return
 
 #任务2:小车能检测到绿色球门，小车把自己送进球门
-def task_one(color_threshold):
+def task_two(color_threshold):
     img = sensor.snapshot()             # 获取一帧图像
-    # 使用img.find_blobs()函数获取图像中的各个色块,blobs即为获取到的色块对象，roi为感兴区域[x,y,w,h]，即只在这个范围内查找
     blob = img.find_blobs(color_threshold,merge=True)
     global speed_B, speed_L, speed_R #全局变量
     if blob:                   # 找到追踪目标
@@ -117,7 +99,7 @@ def task_one(color_threshold):
         if y_error < -20:
             #距离较远，直行靠近
             speed_L = speed
-            speed_R = speed
+            speed_R = -speed
             speed_B = 0
         else:
             speed_L = speed + x_error * turn_factor            # 控制电机转速进行循迹，乘以放大系数，系数越大转向越迅速
