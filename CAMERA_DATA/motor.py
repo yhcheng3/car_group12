@@ -19,15 +19,15 @@ green_threshold = [
                  (30,100,-55,-20,-10,71) #绿色
 ]
 
-min_speed = 800   # 最小速度（电机的死区，低于这个值电机不会启动）
-speed = 1200        # 基准速度（控制整体前进速度，小车运行时的基本速度）
+min_speed = 700   # 最小速度（电机的死区，低于这个值电机不会启动）
+speed = 1000        # 基准速度（控制整体前进速度，小车运行时的基本速度）
 
 speed_L = 0         # 左轮速度暂存全局变量（各电机的实际速度值：基准±巡线偏差值）
 speed_R = 0         # 右轮速度暂存全局变量
 speed_B = 0         # 后轮速度暂存全局变量
 
-turn_factor = 20    # 后轮辅助转向的放大系数
-err_thres = 8       # 用于判断是否需要后轮转向
+turn_factor = 10    # 后轮辅助转向的放大系数
+err_thres = 4       # 用于判断是否需要后轮转向
 kick_thres = 85     # 用于判断是否直行踢球
 
 #======各个外设初始化↓↓↓==========================
@@ -128,7 +128,7 @@ while True:
         task_one(red_threshold) #踢球
     if task2_flag:
         task_two(green_threshold) #找球门
-    data = [speed_L,speed_R,speed_B]
+    data = [int(speed_L),int(speed_R),int(speed_B)]
     uart.write(str(data)+'\n')
     #print(data)
     time.sleep_ms(300)
