@@ -19,8 +19,8 @@ green_threshold = [
                  (30,100,-55,-20,-10,71) #绿色
 ]
 
-min_speed = 700   # 最小速度（电机的死区，低于这个值电机不会启动）
-speed = 1000        # 基准速度（控制整体前进速度，小车运行时的基本速度）
+min_speed = 800   # 最小速度（电机的死区，低于这个值电机不会启动）
+speed = 1200        # 基准速度（控制整体前进速度，小车运行时的基本速度）
 
 speed_L = 0         # 左轮速度暂存全局变量（各电机的实际速度值：基准±巡线偏差值）
 speed_R = 0         # 右轮速度暂存全局变量
@@ -96,28 +96,24 @@ def task_two(color_threshold):
         img.draw_cross(blob_max.cx(), blob_max.cy(),color=(0, 0, 255))  # 根据色块位置在质心画蓝色十字
         x_error = blob_max.cx()-img.width()/2                       # 计算色块中心偏差x_error
         y_error = blob_max.cy()-img.height()/2
-        if blob_max.w() > 123 and blob_max.h() > 130:
+        if blob_max.w() > 123 and blob_max.h() > 130 and blob_max.compactness() > 0.9:
             #进入球门，为避免冲撞停止运动
             speed_B = 0
             speed_L = 0
             speed_R = 0
-        elif abs(x_error) < 20:
+        else:
             if x_error < -err_thres: #右转                          # 当偏差超过这个值，后轮才会辅助转向
-                speed_L = speed + x_error * turn_factor  # 控制电机转速进行循迹，乘以放大系数，系数越大转向越迅速
-                speed_R = -speed + x_error * turn_factor  # 基准速度+偏差
-                speed_B = -min_speed + x_error * turn_factor    # 控制后轮电机转速协助转弯，乘以放大系数，系数越大转向越迅速
+                speed_L = min_speed +100 #+ x_error * turn_factor  # 控制电机转速进行循迹，乘以放大系数，系数越大转向越迅速
+                speed_R = -speed# + x_error * turn_factor  # 基准速度+偏差
+                speed_B = -min_speed #+ x_error * turn_factor    # 控制后轮电机转速协助转弯，乘以放大系数，系数越大转向越迅速
             elif x_error > err_thres: #左转
-                speed_L = speed - x_error * turn_factor
-                speed_R = -speed - x_error * turn_factor
-                speed_B = min_speed + x_error * turn_factor    # 控制后轮电机转速协助转弯
+                speed_L = speed #- x_error * turn_factor
+                speed_R = -min_speed -100#- x_error * turn_factor
+                speed_B = min_speed #+ x_error * turn_factor    # 控制后轮电机转速协助转弯
             else:
                 speed_B = 0
                 speed_L = speed
                 speed_R = -speed
-        else:
-            speed_L = min_speed
-            speed_R = min_speed
-            speed_B = min_speed
     else:
         #rotate to look for target
         speed_L = min_speed
