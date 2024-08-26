@@ -26,7 +26,7 @@ speed_L = 0         # 左轮速度暂存全局变量（各电机的实际速度�
 speed_R = 0         # 右轮速度暂存全局变量
 speed_B = 0         # 后轮速度暂存全局变量
 
-turn_factor = 10    # 后轮辅助转向的放大系数
+turn_factor = 8    #后轮辅助转向的放大系数
 err_thres = 10       # 用于判断是否需要后轮转向
 kick_thres = 90     # 用于判断是否直行踢球
 
@@ -88,7 +88,7 @@ def task_one(color_threshold):
 #任务2:小车能检测到绿色球门，小车把自己送进球门
 def task_two(color_threshold):
     img = sensor.snapshot()             # 获取一帧图像
-    blob = img.find_blobs(color_threshold,merge=True)
+    blob = img.find_blobs(color_threshold,area_threshold = 80, merge=True)
     global speed_B, speed_L, speed_R #全局变量
     if blob:                   # 找到追踪目标
         blob_max = find_max(blob)  # 提取面积最大的一个颜色色块blob
@@ -101,19 +101,19 @@ def task_two(color_threshold):
             speed_B = 0
             speed_L = 0
             speed_R = 0
-        elif abs(x_error) < 20:
+        elif abs(x_error) < 30:
             speed_L = speed + x_error * turn_factor            # 控制电机转速进行循迹，乘以放大系数，系数越大转向越迅速
-            speed_R = -speed + x_error * turn_factor           # 基准速度+偏差
+            speed_R = -speed - x_error * turn_factor           # 基准速度+偏差
 
-            if x_error > err_thres:                           # 当偏差超过这个值，后轮才会辅助转向
+            if x_error < -err_thres:                           # 当偏差超过这个值，后轮才会辅助转向
                 speed_B = min_speed + x_error * turn_factor    # 控制后轮电机转速协助转弯，乘以放大系数，系数越大转向越迅速
-            elif x_error < -err_thres:
+            elif x_error > err_thres:
                 speed_B = -min_speed + x_error * turn_factor    # 控制后轮电机转速协助转弯
             else:
                 speed_B = 0
                 speed_L = speed
                 speed_R = -speed
-            #print(x_error, speed_L,speed_R,speed_B) # 串行终端打印，偏差和最终电机输出
+            print(x_error, speed_L,speed_R,speed_B) # 串行终端打印，偏差和最终电机输出
         else:
             speed_L = min_speed
             speed_R = min_speed
@@ -137,5 +137,5 @@ while True:
     data = [int(speed_L),int(speed_R),int(speed_B)]
     uart.write(str(data)+'\n')
     print(data)
-    time.sleep_ms(100)
+    time.sleep_ms(50)
 
