@@ -30,7 +30,7 @@ uart = UART(3, 115200)
 # --------------------------------设置初始变量参数↓↓↓--------------------------------------
 # 设置要寻找的线的阈值的阈值（色块法）
 red_threshold = [
-                 (0, 100, 28, 127，-12, 49)#红色，
+                 (0, 100, 28, 127, -12, 49)#红色，
 ]
 green_threshold = [
                  (30,100,-55,-20,-10,71) #绿色
@@ -80,11 +80,11 @@ def task_one(color_threshold):
         img.draw_cross(blob_max.cx(), blob_max.cy(),color=(0, 0, 255))  # 根据色块位置在质心画蓝色十字
         x_error = blob_max.cx()-img.width()/2                       # 计算色块中心偏差x_error
         y_error = blob_max.cy()-img.height()/2
-        if y_error > 20:
+        if y_error < -20:
             #距离较远，直行靠近
             speed_L = speed
             speed_R = speed
-            speed_B = 0;
+            speed_B = 0
         else:
             speed_L = speed + x_error * turn_factor            # 控制电机转速进行循迹，乘以放大系数，系数越大转向越迅速
             speed_R = -speed + x_error * turn_factor           # 基准速度+偏差
@@ -106,7 +106,7 @@ def task_one(color_threshold):
 
 
 # ================== 程序主循环 =======================
-while(True):
+while True:
     task_one(green_threshold) #找球门
     data = [speed_L,speed_R,speed_B]
     uart.write(str(data)+'\n')
