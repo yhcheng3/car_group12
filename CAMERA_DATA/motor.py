@@ -26,8 +26,8 @@ speed_L = 0         # 左轮速度暂存全局变量（各电机的实际速度�
 speed_R = 0         # 右轮速度暂存全局变量
 speed_B = 0         # 后轮速度暂存全局变量
 
-turn_factor = 8    #后轮辅助转向的放大系数
-err_thres = 10       # 用于判断是否需要后轮转向
+turn_factor = 20    #后轮辅助转向的放大系数
+err_thres = 4       # 用于判断是否需要后轮转向
 kick_thres = 90     # 用于判断是否直行踢球
 
 #======各个外设初始化↓↓↓==========================
@@ -65,7 +65,7 @@ def task_one(color_threshold):
         x_error = blob_max.cx()-img.width()/2                       # 计算色块中心偏差x_error
         speed_L = speed + x_error * turn_factor            # 控制电机转速进行循迹，乘以放大系数，系数越大转向越迅速
         speed_R = -speed + x_error * turn_factor   # 基准速度+偏差
-        if abs(x_error) < err_thres & blob_max.w() > kick_thres:  #直行踢球
+        if abs(x_error) < err_thres and blob_max.w() > kick_thres:  #直行踢球
             speed_L = speed
             speed_R = -speed
             speed_B = 0
@@ -96,24 +96,24 @@ def task_two(color_threshold):
         img.draw_cross(blob_max.cx(), blob_max.cy(),color=(0, 0, 255))  # 根据色块位置在质心画蓝色十字
         x_error = blob_max.cx()-img.width()/2                       # 计算色块中心偏差x_error
         y_error = blob_max.cy()-img.height()/2
-        if blob_max.w() > 123 & blob_max.h() > 130:
+        if blob_max.w() > 123 and blob_max.h() > 130:
             #进入球门，为避免冲撞停止运动
             speed_B = 0
             speed_L = 0
             speed_R = 0
-        elif abs(x_error) < 30:
-            speed_L = speed + x_error * turn_factor            # 控制电机转速进行循迹，乘以放大系数，系数越大转向越迅速
-            speed_R = -speed - x_error * turn_factor           # 基准速度+偏差
-
-            if x_error < -err_thres:                           # 当偏差超过这个值，后轮才会辅助转向
-                speed_B = min_speed + x_error * turn_factor    # 控制后轮电机转速协助转弯，乘以放大系数，系数越大转向越迅速
-            elif x_error > err_thres:
-                speed_B = -min_speed + x_error * turn_factor    # 控制后轮电机转速协助转弯
+        elif abs(x_error) < 20:
+            if x_error < -err_thres: #右转                          # 当偏差超过这个值，后轮才会辅助转向
+                speed_L = speed + x_error * turn_factor  # 控制电机转速进行循迹，乘以放大系数，系数越大转向越迅速
+                speed_R = -speed + x_error * turn_factor  # 基准速度+偏差
+                speed_B = -min_speed + x_error * turn_factor    # 控制后轮电机转速协助转弯，乘以放大系数，系数越大转向越迅速
+            elif x_error > err_thres: #左转
+                speed_L = speed - x_error * turn_factor
+                speed_R = -speed - x_error * turn_factor
+                speed_B = min_speed + x_error * turn_factor    # 控制后轮电机转速协助转弯
             else:
                 speed_B = 0
                 speed_L = speed
                 speed_R = -speed
-            print(x_error, speed_L,speed_R,speed_B) # 串行终端打印，偏差和最终电机输出
         else:
             speed_L = min_speed
             speed_R = min_speed
@@ -123,7 +123,7 @@ def task_two(color_threshold):
         speed_L = min_speed
         speed_R = min_speed
         speed_B = min_speed
-
+    print(x_error, speed_L, speed_R, speed_B)  # 串行终端打印，偏差和最终电机输出
     return
 
 # ================== 程序主循环 =======================
