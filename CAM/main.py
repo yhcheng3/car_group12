@@ -35,6 +35,9 @@ RED_WIDTH_TOL = 40                     # 红球宽度容差
 
 CENTRE_THRESHOLD = 15
 
+SHOOT_PAUSE_1 = 15
+SHOOT_PAUSE_2 = 10
+
 states = {
     "INITIAL": 0,                   # 弃用
     "SEARCHING": 1,                 # 寻找红球
@@ -60,7 +63,9 @@ blackline_states = {
 prev_state = states["SEARCHING"]
 state = states["SEARCHING"]
 
-shoot_cnt = 0
+shoot_cnt = 0                       # 射门条件满足计数
+shoot_tick = 0                      # 射门计时
+shoot_length = 70                    # 射门持续时间
 
 #===============================各个外设初始化↓↓↓========================================
 
@@ -167,21 +172,26 @@ def find_black_line(img):
     return black_line_flag
 
 def state_switch(red_blobs, green_blobs, black_line):
-    global prev_state, state, shoot_cnt
+    global prev_state, state, shoot_cnt, shoot_tick
 
-    shoot_flag = 0
+    is_shoot = False
 
     prev_state = state
 
-    if black_line == blackline_states["CAR_TO_LEFT"]:
-        state = states["SEARCHING_RIGHT"] #向右转，优先小车远离球门
-    elif black_line == blackline_states["CAR_TO_RIGHT"]:
-        state = states["SEARCHING_LEFT"]
-    elif black_line == blackline_states["BLACK_LINE_DETECTED"]:
-        state = states["BACKWARD"]
-    else:
+#    if black_line == blackline_states["CAR_TO_LEFT"]:
+#        state = states["SEARCHING_RIGHT"] #向右转，优先小车远离球门
 
-        if not red_blobs:
+#    elif black_line == blackline_states["CAR_TO_RIGHT"]:
+#        state = states["SEARCHING_LEFT"]
+
+    if black_line == blackline_states["BLACK_LINE_DETECTED"]:
+        state = states["BACKWARD"]
+
+    else:
+        if state == states["SHOOTING"]:
+            state = states["SHOOTING"]
+
+        elif not red_blobs:
             state = states["SEARCHING"]
         else:
             if 0 <= (red_blobs[0]).cx() <= (IMG_WIDTH/2 - RED_WIDTH_TOL):
@@ -215,12 +225,11 @@ def state_switch(red_blobs, green_blobs, black_line):
                             if ((green_blobs[0]).w() > 90 and
                                 (green_blobs[0].rotation_deg() >= 150 or green_blobs[0].rotation_deg() <= 30)):
 
-                                shoot_flag = 1
-
                                 if shoot_cnt >= 5:
                                     state = states["SHOOTING"]
                                 else:
                                     state = states["DRIBBLING_FORWARD"]
+                                    is_shoot = True
                             else:
                                 state = states["DRIBBLING_FORWARD"]
 
@@ -235,8 +244,13 @@ def state_switch(red_blobs, green_blobs, black_line):
                         else:
                             # 球门不在中间
                             state = states["ADJUSTING_GREEN"]
-        if shoot_flag == 1:
-            shoot_cnt += 1
+    if is_shoot == True:
+        shoot_cnt += 1
+    else:
+        shoot_cnt = 0
+
+    if state != states["SHOOTING"]:
+        shoot_tick = 0
 
 
 while (True):
@@ -306,15 +320,39 @@ while (True):
         elif (state == states["SHOOTING"]):
             # 终结状态；必须经过DRIBBLING状态，才能进入SHOOTING状态
             # 有球，球够近；球靠中心；有球门；球门足够靠中心；球门没偏，不会射到门框；没敌人
-            uart.write(str([0, 0, 0])+'\n')
-            time.sleep_ms(200)
-            uart.write(str([6000, -6000, 0])+'\n')
-            time.sleep_ms(500)
-            uart.write(str([0, 0, 0])+'\n')
-            time.sleep_ms(5000)
-            speed_L = 0
-            speed_R = 0
-            speed_B = 0
+            shoot_tick += 1
+
+            if 0 <= shoot_tick < SHOOT_PAUSE_1:
+                if shoot_tick == 0:
+                    if green_blobs:
+                        if (green_blobs[0].w()) > 90:
+                            shoot_length = 25
+                        else:
+                            shoot_length = 50
+                    else:
+                        shoot_length = 50
+                speed_L = 0
+                speed_R = 0
+                speed_B = 0
+
+            elif shoot_tick < SHOOT_PAUSE_1 + shoot_length:
+                speed_L = 6000
+                speed_R = -6000
+                speed_B = 0
+
+            elif shoot_tick < SHOOT_PAUSE_1 + shoot_length + SHOOT_PAUSE_2:
+                speed_L = 0
+                speed_R = 0
+                speed_B = 0
+
+            elif shoot_tick < SHOOT_PAUSE_1 + 2*shoot_length + SHOOT_PAUSE_2:
+                speed_L = -6000
+                speed_R = 6000
+                speed_B = 0
+
+            else:
+                state = states["SEARCHING"]
+                shoot_tick = 0
 
         else:
             prev_state = states["SEARCHING"]
@@ -334,7 +372,7 @@ while (True):
             # 状态变化，不输出给电机，减少延时
             prev_state = state
         else:
-            data = [int(speed_L), int(speed_R), speed_B]
+            data = [int(speed_L), int(speed_R), int(speed_B)]
             uart.write(str(data) + '\n')
             time.sleep_ms(10)
 
