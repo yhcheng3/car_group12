@@ -42,7 +42,7 @@ def find_max(blobs):
            max_size = blob[2]*blob[3]
    return max_blob
 
-def find_black_line():
+def find_black_line(img):
     black_line_flag = 0
     blobs = img.find_blobs(mixed_thresholds,pixels_threshold=10, area_threshold=10, merge=True)
     if blobs:

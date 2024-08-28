@@ -44,9 +44,9 @@ sensor.set_auto_whitebal(False)     # 必须关闭自动白平衡才能进行相
 # 3. 增加长方体、椭圆情况
 # 4.
 
-def find_tyre():
+def find_tyre(img):
     car_flag = 0
-    img = sensor.snapshot()
+
     circles = img.find_circles(x_stride = 1, y_stride = 1, threshold = 3000, x_margin = 50, y_margin = 50, r_margin = 20,r_min = 5, r_max = 20, r_step = 1)
     for c in circles:
         #img.draw_circle(c.x(), c.y(), c.r(), color = (255, 0, 0))
@@ -76,6 +76,7 @@ def find_tyre():
 # ================================= 程序主循环 ==========================================
 
 while(True):
-    car_flag = find_tyre()
+    img = sensor.snapshot()
+    car_flag = find_tyre(img)
     print(car_flag)
     time.sleep_ms(50)
