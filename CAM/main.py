@@ -31,12 +31,10 @@ speed_B = 0                            # 后轮速度暂存全局变量
 
 # ------------------------------定义各状态以及相关变量↓↓↓--------------------------------------
 
-RED_WIDTH_TOL = 40                     # 红球宽度容差
+RED_WIDTH_TOL = 50                     # 红球宽度容差
 
-CENTRE_THRESHOLD = 15
-
-SHOOT_PAUSE_1 = 15
-SHOOT_PAUSE_2 = 10
+SHOOT_PAUSE_1 = 1
+SHOOT_PAUSE_2 = 1
 
 states = {
     "INITIAL": 0,                   # 弃用
@@ -65,7 +63,16 @@ state = states["SEARCHING"]
 
 shoot_cnt = 0                       # 射门条件满足计数
 shoot_tick = 0                      # 射门计时
-shoot_length = 70                    # 射门持续时间
+shoot_length = 70                   # 射门持续时间
+
+searching_tick = 0                  # 寻找红球计时
+searching_flag = 0                  # 寻找红球标志
+
+adjusting_tick = 0                  # 瞄准球门计时 (SEARCHING_GREEN)
+adjusting_flag = 0                  # 瞄准球门标志
+
+red_blob = None
+green_blob = None
 
 #===============================各个外设初始化↓↓↓========================================
 
@@ -121,8 +128,8 @@ def find_ball(img):
     red_blobs = img.find_blobs(red_threshold,pixels_threshold=10, area_threshold=10, merge=True)
 
     if red_blobs:
-        img.draw_rectangle(red_blobs[0].rect(),color=(255, 0, 0))       # 根据色块blob位置画红色框
-        img.draw_cross(red_blobs[0].cx(), red_blobs[0].cy(),color=(0, 0, 255))  # 根据色块位置在中心画蓝色十字
+        img.draw_rectangle(red_blob.rect(),color=(255, 0, 0))       # 根据色块blob位置画红色框
+        img.draw_cross(red_blob.cx(), red_blob.cy(),color=(0, 0, 255))  # 根据色块位置在中心画蓝色十字
 
     return red_blobs
 
@@ -130,8 +137,8 @@ def find_goal(img):
     green_blobs = img.find_blobs(green_threshold,pixels_threshold=100, area_threshold=100, merge=True)
 
     if green_blobs:
-        img.draw_rectangle(green_blobs[0].rect(),color=(255, 0, 0))       # 根据色块blob位置画红色框
-        img.draw_cross(green_blobs[0].cx(), green_blobs[0].cy(),color=(0, 0, 255))  # 根据色块位置在中心画蓝色十字
+        img.draw_rectangle(green_blob.rect(),color=(255, 0, 0))       # 根据色块blob位置画红色框
+        img.draw_cross(green_blob.cx(), green_blob.cy(),color=(0, 0, 255))  # 根据色块位置在中心画蓝色十字
 
     return green_blobs
 
@@ -172,7 +179,9 @@ def find_black_line(img):
     return black_line_flag
 
 def state_switch(red_blobs, green_blobs, black_line):
-    global prev_state, state, shoot_cnt, shoot_tick
+    global prev_state, state, shoot_cnt, shoot_tick, searching_tick, searching_flag, adjusting_tick, adjusting_flag
+    
+    global red_blob, green_blob
 
     is_shoot = False
 
@@ -184,6 +193,12 @@ def state_switch(red_blobs, green_blobs, black_line):
 #    elif black_line == blackline_states["CAR_TO_RIGHT"]:
 #        state = states["SEARCHING_LEFT"]
 
+    if red_blobs:
+        red_blob = find_max(red_blobs)
+        
+    if green_blobs:
+        green_blob = find_max(green_blobs)
+    
     if black_line == blackline_states["BLACK_LINE_DETECTED"]:
         state = states["BACKWARD"]
 
@@ -194,36 +209,36 @@ def state_switch(red_blobs, green_blobs, black_line):
         elif not red_blobs:
             state = states["SEARCHING"]
         else:
-            if 0 <= (red_blobs[0]).cx() <= (IMG_WIDTH/2 - RED_WIDTH_TOL):
+            if 0 <= (red_blob).cx() <= (IMG_WIDTH/2 - RED_WIDTH_TOL):
                 state = states["SEARCHING_LEFT"]
 
-            elif (IMG_WIDTH/2 + RED_WIDTH_TOL) < (red_blobs[0]).cx():
+            elif (IMG_WIDTH/2 + RED_WIDTH_TOL) < (red_blob).cx():
                 state = states["SEARCHING_RIGHT"]
 
             else:
                 # 找到红球，且在中间
                 if not green_blobs:
-                    if (red_blobs[0]).w() <= 60:
+                    if (red_blob).w() <= 50:
                         state = states["FORWARD"]
 
-                    elif (red_blobs[0]).w() > 90:
+                    elif (red_blob).w() > 70:
                         state = states["BACKWARD"]
                     else:
                         state = states["SEARCHING_GREEN"]
 
                 else:
                     # 红球在中间，且找到球门，但球可能很远
-                    if black_line == blackline_states["CAR_TO_LEFT"]:
-                        state = states["SEARCHING_RIGHT"] #向右转，优先小车远离球门
-                    elif black_line == blackline_states["CAR_TO_RIGHT"]:
-                        state = states["SEARCHING_LEFT"]
-                    elif black_line == blackline_states["BLACK_LINE_DETECTED"]:
+                    # if black_line == blackline_states["CAR_TO_LEFT"]:
+                    #     state = states["SEARCHING_RIGHT"] #向右转，优先小车远离球门
+                    # elif black_line == blackline_states["CAR_TO_RIGHT"]:
+                    #     state = states["SEARCHING_LEFT"]
+                    if black_line == blackline_states["BLACK_LINE_DETECTED"]:
                         state = states["BACKWARD"]
                     else:
-                        if abs((green_blobs[0]).cx() - IMG_WIDTH/2) < 30:
+                        if abs((green_blob).cx() - IMG_WIDTH/2) < 25:
                             # 球门在正中间
-                            if ((green_blobs[0]).w() > 90 and
-                                (green_blobs[0].rotation_deg() >= 150 or green_blobs[0].rotation_deg() <= 30)):
+                            if ((green_blob).w() > 90 and
+                                (green_blob.rotation_deg() >= 150 or green_blob.rotation_deg() <= 30)):
 
                                 if shoot_cnt >= 5:
                                     state = states["SHOOTING"]
@@ -233,10 +248,10 @@ def state_switch(red_blobs, green_blobs, black_line):
                             else:
                                 state = states["DRIBBLING_FORWARD"]
 
-                        elif abs((green_blobs[0]).cx() - IMG_WIDTH/2) < 60:
+                        elif abs((green_blob).cx() - IMG_WIDTH/2) < 40:
                             # 球门靠近中间
-                            # if ((green_blobs[0]).w() > 90 and
-                            #     (green_blobs[0].rotation_deg() >= 150 or green_blobs[0].rotation_deg() <= 30)):
+                            # if ((green_blob).w() > 90 and
+                            #     (green_blob.rotation_deg() >= 150 or green_blob.rotation_deg() <= 30)):
                             #     state = states["SHOOTING"]
                             # else:
                             state = states["DRIBBLING"]
@@ -249,9 +264,30 @@ def state_switch(red_blobs, green_blobs, black_line):
     else:
         shoot_cnt = 0
 
+    # 射门状态计时
     if state != states["SHOOTING"]:
         shoot_tick = 0
 
+    # 搜索红球时碰到白墙，切换搜索方向
+    if state == states["SEARCHING"]:
+        if searching_tick >= 300:
+            searching_flag = 1 - searching_flag
+            searching_tick = 0
+        else:
+            searching_tick += 1
+    else:
+        searching_tick = 0
+
+    # 搜索球门时碰到白墙，切换搜索方向
+#    if (state == states["SEARCHING_GREEN"] or state == states["BACKWARD"] or
+#       state == states["FORWARD"] or state == states["SEARCHING_LEFT"] or state == states["SEARCHING_RIGHT"]):
+#        if adjusting_tick >= 300:
+#            adjusting_flag = 1 - adjusting_flag
+#            adjusting_tick = 0
+#        else:
+#            adjusting_tick += 1
+#    else:
+#        adjusting_tick = 0
 
 while (True):
         img = sensor.snapshot()             # 获取一帧图像
@@ -265,9 +301,14 @@ while (True):
         # speed赋值放else里面，减少延时
         if (state == states["SEARCHING"]):
             # 原地旋转，寻找红球
-            speed_L = -900
-            speed_R = -900
-            speed_B = -900
+            if searching_flag == 0:
+                speed_L = -600
+                speed_R = -600
+                speed_B = -600
+            elif searching_flag == 1:
+                speed_L = 600
+                speed_R = 600
+                speed_B = 600
 
         elif (state == states["SEARCHING_LEFT"]):
             # 无论红球远近，向左原地旋转，对准红球，使其在中间
@@ -295,15 +336,20 @@ while (True):
 
         elif (state == states["SEARCHING_GREEN"]):
             # 红球在中间，球距离刚好；还没找到球门
+            # if adjusting_flag == 0:
             speed_L = 0
             speed_R = 0
-            speed_B = 4000
+            speed_B = 2300
+#            else:
+#                speed_L = 0
+#                speed_R = 0
+#                speed_B = 4000
 
         elif (state == states["ADJUSTING_GREEN"]):
             # 红球在中间，球距离刚好；找到球门，公转
             speed_L = 0
             speed_R = 0
-            speed_B = sign((green_blobs[0]).cx()-(red_blobs[0]).cx()) * 4000
+            speed_B = sign((green_blob).cx()-(red_blob).cx()) * 4000
 
         elif (state == states["DRIBBLING_FORWARD"]):
             # 红球在中间，球距离刚好；找到球门，球门在中间，前进
@@ -315,7 +361,7 @@ while (True):
             # 红球在中间，球距离刚好；找到球门，球门足够靠中心
             speed_L = 2500
             speed_R = -2500
-            speed_B = -20*((green_blobs[0]).cx()-(red_blobs[0]).cx())
+            speed_B = -20*((green_blob).cx()-(red_blob).cx())
 
         elif (state == states["SHOOTING"]):
             # 终结状态；必须经过DRIBBLING状态，才能进入SHOOTING状态
@@ -325,10 +371,10 @@ while (True):
             if 0 <= shoot_tick < SHOOT_PAUSE_1:
                 if shoot_tick == 0:
                     if green_blobs:
-                        if (green_blobs[0].w()) > 90:
-                            shoot_length = 25
+                        if (green_blob.w()) > 90:
+                            shoot_length = 2
                         else:
-                            shoot_length = 50
+                            shoot_length = 5
                     else:
                         shoot_length = 50
                 speed_L = 0
@@ -374,5 +420,5 @@ while (True):
         else:
             data = [int(speed_L), int(speed_R), int(speed_B)]
             uart.write(str(data) + '\n')
-            time.sleep_ms(10)
+            time.sleep_ms(50)
 
